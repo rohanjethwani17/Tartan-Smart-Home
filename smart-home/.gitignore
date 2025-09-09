@@ -1,0 +1,15 @@
+*.iml
+/dist
+/build
+.idea/
+.gradle/
+out/
+/.DS_Store
+.DS_Store
+*.pyc
+*.class
+build/
+dist/
+/gradle
+/gradlew
+/gradlew.bat
