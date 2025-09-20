@@ -42,12 +42,14 @@ class StaticTartanStateEvaluatorTest {
      */
     @Test
     public void testR1() {
+        // house vacant + light on
         state.put(IoTValues.PROXIMITY_STATE, false);
         state.put(IoTValues.LIGHT_STATE, true);
 
         Map<String, Object> evaluatedState = evaluator.evaluateState(state, log);
         boolean lightState = (boolean) evaluatedState.get(IoTValues.LIGHT_STATE);
 
+        // lights off
         assertFalse(lightState, "Light should not be on when the house is vacant.");
     }
 
@@ -64,6 +66,7 @@ class StaticTartanStateEvaluatorTest {
         Map<String, Object> evaluatedState = evaluator.evaluateState(state, log);
         boolean doorState = (boolean) evaluatedState.get(IoTValues.DOOR_STATE);
 
+        // door closed
         assertFalse(doorState, "Door should be closed if house is vacant.");
     }
 
@@ -73,6 +76,7 @@ class StaticTartanStateEvaluatorTest {
      */
     @Test
     public void testR8() {
+        // house occupied + alarm off + light off
         state.put(IoTValues.PROXIMITY_STATE, true);
         state.put(IoTValues.ALARM_STATE, false);
         state.put(IoTValues.LIGHT_STATE, false);
@@ -82,7 +86,10 @@ class StaticTartanStateEvaluatorTest {
         boolean alarmState = (boolean) evaluatedState.get(IoTValues.ALARM_STATE);
         boolean lightState = (boolean) evaluatedState.get(IoTValues.LIGHT_STATE);
 
-        assertTrue(proximityState && lightState && !alarmState, "Light should turn on if house is occupied and the alarm is off.");
+        // house occupied + alarm off + light on
+        assertTrue(proximityState, "House should be occupied should be on.");
+        assertFalse(alarmState, "Alarm should be off.");
+        assertTrue(lightState, "Light should turn on.");
     }
 
     /**
@@ -91,6 +98,7 @@ class StaticTartanStateEvaluatorTest {
      */
     @Test
     public void testR10() {
+        // heater on + humidifier on
         state.put(IoTValues.HEATER_STATE, true);
         state.put(IoTValues.HUMIDIFIER_STATE, true);
 
@@ -98,6 +106,7 @@ class StaticTartanStateEvaluatorTest {
         boolean heaterState = (Boolean) evaluatedState.get(IoTValues.HEATER_STATE);
         boolean humidifierState = (Boolean) evaluatedState.get(IoTValues.HUMIDIFIER_STATE);
 
+        // heater and humidifier not on at the same time
         assertFalse(heaterState && humidifierState, "Heater and humidifier cannot be on at the same time.");
     }
 }
