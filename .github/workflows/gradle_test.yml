@@ -1,0 +1,28 @@
+name: Gradle Test
+
+on:
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  gradle-test:
+    name: Gradle Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 21
+      # Technically we could just run gradle test right away, but separating into build/test steps gives better error messages if one of them fails
+      - name: Build Gradle
+        # https://stackoverflow.com/questions/58139175/running-actions-in-another-directory
+        working-directory: "smart-home/Platform"
+        run: |
+          chmod +x gradlew
+          ./gradlew build --exclude-task test
+      - name: Run Tests
+        working-directory: "smart-home/Platform"
+        run: |
+          ./gradlew test
