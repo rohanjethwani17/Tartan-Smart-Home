@@ -109,4 +109,77 @@ class StaticTartanStateEvaluatorTest {
         // heater and humidifier not on at the same time
         assertFalse(heaterState && humidifierState, "Heater and humidifier cannot be on at the same time.");
     }
+
+     /**
+     * R13: The correct passcode is required to disable the alarm.
+     * Hard
+     */
+    @Test
+    public void testR13_CannotDisableWithWrongPasscode() {
+        // occupied house, alarm sounding
+        state.put(IoTValues.PROXIMITY_STATE, true);
+        state.put(IoTValues.ALARM_STATE, true);
+        state.put(IoTValues.ALARM_ACTIVE, true);
+        // user attempts to disable (set alarm to false) with wrong passcode
+        state.put(IoTValues.GIVEN_PASSCODE, "wrong");
+        state.put(IoTValues.ALARM_STATE, false);
+
+        Map<String, Object> evaluated = evaluator.evaluateState(state, log);
+        assertTrue((Boolean) evaluated.get(IoTValues.ALARM_STATE),
+                "Alarm should remain enabled with an incorrect passcode.");
+    }
+
+    @Test
+    public void testR13_DisableWithCorrectPasscode() {
+        // occupied house, alarm sounding
+        state.put(IoTValues.PROXIMITY_STATE, true);
+        state.put(IoTValues.ALARM_STATE, true);
+        state.put(IoTValues.ALARM_ACTIVE, true);
+        // user provides correct passcode and requests disable
+        state.put(IoTValues.GIVEN_PASSCODE, "passcode");
+        state.put(IoTValues.ALARM_STATE, false);
+
+        Map<String, Object> evaluated = evaluator.evaluateState(state, log);
+        assertFalse((Boolean) evaluated.get(IoTValues.ALARM_STATE),
+                "Alarm should be disabled with the correct passcode.");
+    }
+
+    /**
+     * R16: The target temperature must be between 50F and 80F.
+     * Hard
+     */
+    @Test
+    public void targetTemperatureMustBeWithin50to80F() {
+        // --- Accept lower bound (50°F) ---
+        {
+            state.put(IoTValues.TARGET_TEMP, 50);
+            Map<String, Object> result = evaluator.evaluateState(state, log);
+            assertEquals(50, result.get(IoTValues.TARGET_TEMP),
+                    "Target temperature 50°F should be accepted (lower bound).");
+        }
+
+        // Reject below min (49°F): clamp to 50°F 
+        {
+            state.put(IoTValues.TARGET_TEMP, 49);
+            Map<String, Object> result = evaluator.evaluateState(state, log);
+            assertEquals(50, result.get(IoTValues.TARGET_TEMP),
+                    "49°F is out of range; value should clamp to 50°F.");
+        }
+
+        // Accept upper bound (80°F)
+        {
+            state.put(IoTValues.TARGET_TEMP, 80);
+            Map<String, Object> result = evaluator.evaluateState(state, log);
+            assertEquals(80, result.get(IoTValues.TARGET_TEMP),
+                    "Target temperature 80°F should be accepted (upper bound).");
+        }
+
+        // Reject above max (81°F): clamp to 80°F 
+        {
+            state.put(IoTValues.TARGET_TEMP, 81);
+            Map<String, Object> result = evaluator.evaluateState(state, log);
+            assertEquals(80, result.get(IoTValues.TARGET_TEMP),
+                    "81°F is out of range; value should clamp to 80°F.");
+        }
+    }
 }
