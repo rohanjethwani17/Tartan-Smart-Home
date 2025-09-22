@@ -41,7 +41,7 @@ class StaticTartanStateEvaluatorTest {
      * Easy
      */
     @Test
-    public void testR1() {
+    public void testR1_VacantHouseTurnsLightOff() {
         // house vacant + light on
         state.put(IoTValues.PROXIMITY_STATE, false);
         state.put(IoTValues.LIGHT_STATE, true);
@@ -58,7 +58,7 @@ class StaticTartanStateEvaluatorTest {
      * Easy
      */
     @Test
-    public void testR3() {
+    public void testR3_VacantHouseClosesDoor() {
         // house vacant + door open
         state.put(IoTValues.PROXIMITY_STATE, false);
         state.put(IoTValues.DOOR_STATE, true);
@@ -75,7 +75,7 @@ class StaticTartanStateEvaluatorTest {
      * Medium
      */
     @Test
-    public void testR8() {
+    public void testR8_OccupiedWithDisabledAlarmTurnsLightOn() {
         // house occupied + alarm off + light off
         state.put(IoTValues.PROXIMITY_STATE, true);
         state.put(IoTValues.ALARM_STATE, false);
@@ -97,7 +97,7 @@ class StaticTartanStateEvaluatorTest {
      * Medium
      */
     @Test
-    public void testR10() {
+    public void testR10_NoSimultaneousHeaterDehumidifier() {
         // heater on + humidifier on
         state.put(IoTValues.HEATER_STATE, true);
         state.put(IoTValues.HUMIDIFIER_STATE, true);
@@ -115,7 +115,7 @@ class StaticTartanStateEvaluatorTest {
      * Hard
      */
     @Test
-    public void testR13_CannotDisableWithWrongPasscode() {
+    public void testR13_CannotDisableAlarmWithWrongPasscode() {
         // occupied house, alarm sounding
         state.put(IoTValues.PROXIMITY_STATE, true);
         state.put(IoTValues.ALARM_ACTIVE, true);
@@ -129,7 +129,7 @@ class StaticTartanStateEvaluatorTest {
     }
 
     @Test
-    public void testR13_DisableWithCorrectPasscode() {
+    public void testR13_DisableAlarmWithCorrectPasscode() {
         // occupied house, alarm sounding
         state.put(IoTValues.PROXIMITY_STATE, true);
         state.put(IoTValues.ALARM_ACTIVE, true);
@@ -147,7 +147,7 @@ class StaticTartanStateEvaluatorTest {
      * Hard
      */
     @Test
-    public void targetTemperatureMustBeWithin50to80F() {
+    public void testR16_targetTemperatureMustBeWithin50to80F() {
         // --- Accept lower bound (50°F) ---
         {
             state.put(IoTValues.TARGET_TEMP, 50);
