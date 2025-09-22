@@ -17,3 +17,11 @@ directory.
 
 Please see the system description (docx) file for more detailed information
 about Tartan's design, architecture, requirements, etc.
+
+## Group members (W01)
+
+Hooriya Kazmi (hkazmi)
+Sergio De Guzman (sdeguzma)
+Rohan Jethwani (rjethwan)
+Alez Zaiane (adzaiane)
+Daniel Thai (dthai)
