@@ -84,6 +84,17 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
             }
         }
 
+        // Enforce target temperature bounds (R16): 50°F to 80°F inclusive
+        if (targetTempSetting != null) {
+            if (targetTempSetting < 50) {
+                log.append(formatLogEntry("Adjusted target temperature to minimum 50F"));
+                targetTempSetting = 50;
+            } else if (targetTempSetting > 80) {
+                log.append(formatLogEntry("Adjusted target temperature to maximum 80F"));
+                targetTempSetting = 80;
+            }
+        }
+
         if (lightState == true) {
             // The light was activated
             if (!proximityState) {
@@ -158,18 +169,22 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
 
             if (!proximityState) { 
                 alarmState = true;
-
                 log.append(formatLogEntry("Cannot disable the alarm, house is empty"));
-            }
-
-            if (alarmActiveState) {
-                if (givenPassCode.length()>0  && givenPassCode.compareTo(alarmPassCode) < 0) {
-                    log.append(formatLogEntry("Cannot disable alarm, invalid passcode given"));
-                    alarmState = true;
-
+            } else {
+                // R13: Require correct passcode only when the alarm is sounding
+                if (Boolean.TRUE.equals(alarmActiveState)) {
+                    boolean hasPasscode = (givenPassCode != null && alarmPassCode != null);
+                    if (hasPasscode && givenPassCode.equals(alarmPassCode)) {
+                        log.append(formatLogEntry("Correct passcode entered, disabled alarm"));
+                        alarmActiveState = false;
+                        // alarmState remains false
+                    } else {
+                        log.append(formatLogEntry("Cannot disable alarm, invalid passcode given"));
+                        alarmState = true; // keep alarm enabled
+                    }
                 } else {
-                    log.append(formatLogEntry("Correct passcode entered, disabled alarm"));
-                    alarmActiveState = false;
+                    // Alarm not sounding; allow disable while occupied
+                    log.append(formatLogEntry("Alarm disabled"));
                 }
             }
         }
@@ -271,6 +286,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
         newState.put(IoTValues.HVAC_MODE, hvacSetting);
         newState.put(IoTValues.ALARM_PASSCODE, alarmPassCode);
         newState.put(IoTValues.GIVEN_PASSCODE, givenPassCode);
+        newState.put(IoTValues.TARGET_TEMP, targetTempSetting);
         
         return newState; 
     }
