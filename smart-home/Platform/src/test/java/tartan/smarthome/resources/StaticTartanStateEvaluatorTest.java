@@ -87,7 +87,7 @@ class StaticTartanStateEvaluatorTest {
         boolean lightState = (boolean) evaluatedState.get(IoTValues.LIGHT_STATE);
 
         // house occupied + alarm off + light on
-        assertTrue(proximityState, "House should be occupied should be on.");
+        assertTrue(proximityState, "House should be occupied.");
         assertFalse(alarmState, "Alarm should be off.");
         assertTrue(lightState, "Light should turn on.");
     }
@@ -118,7 +118,6 @@ class StaticTartanStateEvaluatorTest {
     public void testR13_CannotDisableWithWrongPasscode() {
         // occupied house, alarm sounding
         state.put(IoTValues.PROXIMITY_STATE, true);
-        state.put(IoTValues.ALARM_STATE, true);
         state.put(IoTValues.ALARM_ACTIVE, true);
         // user attempts to disable (set alarm to false) with wrong passcode
         state.put(IoTValues.GIVEN_PASSCODE, "wrong");
@@ -133,7 +132,6 @@ class StaticTartanStateEvaluatorTest {
     public void testR13_DisableWithCorrectPasscode() {
         // occupied house, alarm sounding
         state.put(IoTValues.PROXIMITY_STATE, true);
-        state.put(IoTValues.ALARM_STATE, true);
         state.put(IoTValues.ALARM_ACTIVE, true);
         // user provides correct passcode and requests disable
         state.put(IoTValues.GIVEN_PASSCODE, "passcode");
