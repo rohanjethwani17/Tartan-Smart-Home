@@ -9,31 +9,37 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+
 class StaticTartanStateEvaluatorTest {
     private StaticTartanStateEvaluator evaluator;
     private Map<String, Object> state;
     private StringBuffer log;
 
+    public static Map<String, Object> createPlausibleTestState() {
+        Map<String, Object> output = new Hashtable<String, Object>();
+        output.put(IoTValues.TEMP_READING, 68);
+        output.put(IoTValues.HUMIDITY_READING, 50);
+        output.put(IoTValues.TARGET_TEMP, 72);
+        output.put(IoTValues.HUMIDIFIER_STATE, false);
+        output.put(IoTValues.DOOR_STATE, false);
+        output.put(IoTValues.LIGHT_STATE, false);
+        output.put(IoTValues.PROXIMITY_STATE, false);
+        output.put(IoTValues.ALARM_STATE, false);
+        output.put(IoTValues.HEATER_STATE, false);
+        output.put(IoTValues.CHILLER_STATE, false);
+        output.put(IoTValues.HVAC_MODE, "OFF");
+        output.put(IoTValues.ALARM_PASSCODE, "passcode");
+        output.put(IoTValues.GIVEN_PASSCODE, "");
+        output.put(IoTValues.AWAY_TIMER, false);
+        output.put(IoTValues.ALARM_ACTIVE, false);
+        return output;
+    }
+
     @BeforeEach
     public void setUp() {
         evaluator = new StaticTartanStateEvaluator();
         log = new StringBuffer();
-        state = new Hashtable<String, Object>();
-        state.put(IoTValues.TEMP_READING, 68);
-        state.put(IoTValues.HUMIDITY_READING, 50);
-        state.put(IoTValues.TARGET_TEMP, 72);
-        state.put(IoTValues.HUMIDIFIER_STATE, false);
-        state.put(IoTValues.DOOR_STATE, false);
-        state.put(IoTValues.LIGHT_STATE, false);
-        state.put(IoTValues.PROXIMITY_STATE, false);
-        state.put(IoTValues.ALARM_STATE, false);
-        state.put(IoTValues.HEATER_STATE, false);
-        state.put(IoTValues.CHILLER_STATE, false);
-        state.put(IoTValues.HVAC_MODE, "OFF");
-        state.put(IoTValues.ALARM_PASSCODE, "passcode");
-        state.put(IoTValues.GIVEN_PASSCODE, "");
-        state.put(IoTValues.AWAY_TIMER, false);
-        state.put(IoTValues.ALARM_ACTIVE, false);
+        state = createPlausibleTestState();
     }
 
     /**
@@ -180,4 +186,63 @@ class StaticTartanStateEvaluatorTest {
                     "81°F is out of range; value should clamp to 80°F.");
         }
     }
+}
+
+class StaticTartanStateEvaluatorUC13EquivalenceClassesTest {
+    private StaticTartanStateEvaluator evaluator;
+    private Map<String, Object> state;
+    private StringBuffer log;
+
+    @BeforeEach
+    public void setUp() {
+        evaluator = new StaticTartanStateEvaluator();
+        log = new StringBuffer();
+        state = StaticTartanStateEvaluatorTest.createPlausibleTestState();
+    }
+
+    @Test
+    public void test_AC_off_DH_off_valid() {
+        state.put(IoTValues.CHILLER_STATE, false);
+        state.put(IoTValues.HUMIDIFIER_STATE, false);
+
+        Map<String, Object> evaluatedState = evaluator.evaluateState(state, log);
+        assertFalse((Boolean) evaluatedState.get(IoTValues.CHILLER_STATE));
+        assertFalse((Boolean) evaluatedState.get(IoTValues.HUMIDIFIER_STATE));
+    }
+
+    @Test
+    public void test_AC_on_DH_off_valid() {
+        state.put(IoTValues.CHILLER_STATE, true);
+        state.put(IoTValues.HUMIDIFIER_STATE, false);
+
+        Map<String, Object> evaluatedState = evaluator.evaluateState(state, log);
+        assertTrue((Boolean) evaluatedState.get(IoTValues.CHILLER_STATE));
+        assertFalse((Boolean) evaluatedState.get(IoTValues.HUMIDIFIER_STATE));
+    }
+
+    @Test
+    public void test_AC_on_DH_on_valid() {
+        state.put(IoTValues.CHILLER_STATE, true);
+        state.put(IoTValues.HUMIDIFIER_STATE, true);
+
+        Map<String, Object> evaluatedState = evaluator.evaluateState(state, log);
+        assertTrue((Boolean) evaluatedState.get(IoTValues.CHILLER_STATE));
+        assertTrue((Boolean) evaluatedState.get(IoTValues.HUMIDIFIER_STATE));
+    }
+
+    @Test
+    public void test_AC_off_DH_on_invalid() {
+        state.put(IoTValues.CHILLER_STATE, false);
+        state.put(IoTValues.HUMIDIFIER_STATE, true);
+
+        Map<String, Object> evaluatedState = evaluator.evaluateState(state, log);
+        Boolean chillerState = (Boolean) evaluatedState.get(IoTValues.CHILLER_STATE);
+        Boolean humidifierState = (Boolean) evaluatedState.get(IoTValues.HUMIDIFIER_STATE);
+        // it should not be the case that things are as they were before (AC off and DH on)
+        assertFalse(
+                !chillerState && humidifierState
+        );
+    }
+
+
 }
