@@ -2,12 +2,11 @@ package tartan.smarthome.resources;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
-import java.util.Hashtable;
 import java.util.Map;
-import java.util.Set;
-import tartan.smarthome.resources.iotcontroller.IoTValues;
 
 public class StaticTartanStateEvaluator implements TartanStateEvaluator {
+    static final int TARGET_TEMP_MIN_F = 50;
+    static final int TARGET_TEMP_MAX_F = 80;
 
     private String formatLogEntry(String entry) {
         Long timeStamp = System.currentTimeMillis();
@@ -19,233 +18,257 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
      * Ensure the requested state is permitted. This method checks each state
      * variable to ensure that the house remains in a consistent state.
      *
-     * @param state The new state to evaluate
+     * @param inState The new state to evaluate
      * @param log The log of state evaluations
      * @return The evaluated state
      */
     @Override
     public Map<String, Object> evaluateState(Map<String, Object> inState, StringBuffer log) {
 
-        // These are the state variables that reflect the current configuration of the house
-
-        Integer tempReading = null; // the current temperature
-        Integer targetTempSetting = null; // the user-desired temperature setting
-        Integer humidityReading = null; // the current humidity
-        Boolean doorState = null; // the state of the door (true if open, false if closed)
-        Boolean lightState = null; // the state of the light (true if on, false if off)
-        Boolean proximityState = null; // the state of the proximity sensor (true of house occupied, false if vacant)
-        Boolean alarmState = null; // the alarm state (true if enabled, false if disabled)
-        Boolean humidifierState = null; // the humidifier state (true if on, false if off)
-        Boolean heaterOnState = null; // the heater state (true if on, false if off)
-        Boolean chillerOnState = null; // the chiller state (true if on, false if off)
-        Boolean alarmActiveState = null; // the alarm active state (true if alarm sounding, false if alarm not sounding)
-        Boolean awayTimerState = false;  // assume that the away timer did not trigger this evaluation
-        Boolean awayTimerAlreadySet = false;
-        String alarmPassCode = null;
-        String hvacSetting = null; // the HVAC mode setting, either Heater or Chiller
-        String givenPassCode = "";
-
         System.out.println("Evaluating new state statically");
+        TartanState intermediateState = TartanState.fromStateMap(inState);
 
-        Set<String> keys = inState.keySet();
-        for (String key : keys) {
 
-            if (key.equals(IoTValues.TEMP_READING)) {
-                tempReading = (Integer) inState.get(key);
-            } else if (key.equals(IoTValues.HUMIDITY_READING)) {
-                humidityReading = (Integer) inState.get(key);
-            } else if (key.equals(IoTValues.TARGET_TEMP)) {
-                targetTempSetting = (Integer) inState.get(key);
-            } else if (key.equals(IoTValues.HUMIDIFIER_STATE)) {
-                humidifierState = (Boolean) inState.get(key);
-            } else if (key.equals(IoTValues.DOOR_STATE)) {
-                doorState = (Boolean) inState.get(key);
-            } else if (key.equals(IoTValues.LIGHT_STATE)) {
-                lightState = (Boolean) inState.get(key);
-            } else if (key.equals(IoTValues.PROXIMITY_STATE)) {
-                proximityState = (Boolean) inState.get(key);
-            } else if (key.equals(IoTValues.ALARM_STATE)) {
-                alarmState = (Boolean) inState.get(key);
-            } else if (key.equals(IoTValues.HEATER_STATE)) {
-                heaterOnState = (Boolean) inState.get(key);
-            } else if (key.equals(IoTValues.CHILLER_STATE)) {
-                chillerOnState = (Boolean) inState.get(key);
-            } else if (key.equals(IoTValues.HVAC_MODE)) {
-                hvacSetting = (String) inState.get(key);
-            } else if (key.equals(IoTValues.ALARM_PASSCODE)) {
-                alarmPassCode = (String) inState.get(key);
-            } else if (key.equals(IoTValues.GIVEN_PASSCODE)) {
-                givenPassCode = (String) inState.get(key);
-            } else if (key.equals(IoTValues.AWAY_TIMER)) {
-                // This is a hack!
-                awayTimerState = (Boolean) inState.getOrDefault(key, false);
-             } else if (key.equals(IoTValues.ALARM_ACTIVE)) {
-                alarmActiveState = (Boolean) inState.get(key);
-            }
+        // Enforce target temperature bounds (R16)
+        validateTargetTempSetting(intermediateState, log);
+
+        // Ensure light can only be activated if the user is home
+        validateLightProximityRules(intermediateState, log);
+
+        if (intermediateState.doorState) {
+            // if the door is open
+            validateOpenedDoorRules(intermediateState, log);
+        } else {
+            validateClosedDoorRules(intermediateState, log);
         }
 
-        // Enforce target temperature bounds (R16): 50°F to 80°F inclusive
-        if (targetTempSetting != null) {
-            if (targetTempSetting < 50) {
-                log.append(formatLogEntry("Adjusted target temperature to minimum 50F"));
-                targetTempSetting = 50;
-            } else if (targetTempSetting > 80) {
-                log.append(formatLogEntry("Adjusted target temperature to maximum 80F"));
-                targetTempSetting = 80;
-            }
-        }
-
-        if (lightState == true) {
-            // The light was activated
-            if (!proximityState) {
-                log.append(formatLogEntry("Cannot turn on light because user not home"));
-                    lightState = false;
-            }
-            else {
-                log.append(formatLogEntry("Light on"));
-            }        
-        } else if (lightState) {
-            log.append(formatLogEntry("Light off"));
-        }
-
-        // The door is now open
-        if (doorState) {        
-            if (!proximityState && alarmState) {
-
-                // door open and no one home and the alarm is set - sound alarm
-                log.append(formatLogEntry("Break in detected: Activating alarm"));
-                alarmActiveState = true;
-            }
-            // House vacant, close the door
-            else if (!proximityState) {
-                // close the door
-                doorState = false;
-                log.append(formatLogEntry("Closed door because house vacant"));
-            } else {
-                log.append(formatLogEntry("Door open"));
-            }
-
-            // The door is open the alarm is to be set and somebody is home - this is not
-            // allowed so discard the processStateUpdate
-        }
-
-        // The door is now closed
-        else if (!doorState) {
-            // the door is closed - if the house is suddenly occupied this is a break-in
-            if (alarmState && proximityState) {
-                log.append(formatLogEntry("Break in detected: Activating alarm"));
-                alarmActiveState = true;
-            } else {
-                log.append(formatLogEntry("Closed door"));
-            }
-        }
-        
         // Auto lock the house
-        if (awayTimerState == true) {
-            lightState = false;
-            doorState = false;
-            alarmState = true;
-            awayTimerState = false;
-        }
+        invokeAwayTimerIfApplicable(intermediateState, log);
 
         // the user has arrived
-        if (proximityState) {
-            log.append(formatLogEntry("House is occupied"));
-            // if the alarm has been disabled, then turn on the light for the user
-
-            if (!lightState && !alarmState) {
-                lightState = true;
-                log.append(formatLogEntry("Turning on light"));
-            }
-            
-        }
+        validateHouseNewlyOccupied(intermediateState, log);
 
         // set the alarm
-        if (alarmState) {
+        if (intermediateState.alarmState) {
             log.append(formatLogEntry("Alarm enabled"));
-            
-
-        } else if (!alarmState) { // attempt to disable alarm
-
-            if (!proximityState) { 
-                alarmState = true;
-                log.append(formatLogEntry("Cannot disable the alarm, house is empty"));
-            } else {
-                // R13: Require correct passcode only when the alarm is sounding
-                if (Boolean.TRUE.equals(alarmActiveState)) {
-                    boolean hasPasscode = (givenPassCode != null && alarmPassCode != null);
-                    if (hasPasscode && givenPassCode.equals(alarmPassCode)) {
-                        log.append(formatLogEntry("Correct passcode entered, disabled alarm"));
-                        alarmActiveState = false;
-                        // alarmState remains false
-                    } else {
-                        log.append(formatLogEntry("Cannot disable alarm, invalid passcode given"));
-                        alarmState = true; // keep alarm enabled
-                    }
-                } else {
-                    // Alarm not sounding; allow disable while occupied
-                    log.append(formatLogEntry("Alarm disabled"));
-                }
-            }
+        } else { // attempt to disable alarm
+            validateAlarmDisablingAttempt(intermediateState, log);
         }
 
-        if (!alarmState) {
+        if (!intermediateState.alarmState) {
             log.append(formatLogEntry("Alarm disabled"));
+            intermediateState.alarmActiveState = false;
         }
 
-        if (!alarmState) { // alarm disabled
-            alarmActiveState = false;
-        }       
-        
 
-        // determine if the alarm should sound. There are two cases
-        // 1. the door is opened when no one is home
-        // 2. the house is suddenly occupied
-        try {
-            if ((alarmState && !doorState && proximityState) || (alarmState && doorState && !proximityState)) {
-                log.append(formatLogEntry("Activating alarm"));
-                alarmActiveState = true;
+        determineHeaterChillerEnabling(intermediateState, log);
+        determineHvacSetting(intermediateState, log);
+        manageHvacControl(intermediateState, log);
+
+        return intermediateState.toStateMap();
+    }
+
+    /**
+     * Ensure that the target temperature is within bounds. Modifies intermediateState
+     * @param intermediateState state of house during evaluation
+     * @param log The log of state evaluations
+     */
+    private void validateTargetTempSetting(TartanState intermediateState, StringBuffer log) {
+        Integer targetTempSetting = intermediateState.targetTempSetting;
+
+        if(targetTempSetting < TARGET_TEMP_MIN_F){
+            log.append(formatLogEntry(String.format("Adjusted target temperature to minimum %dF", TARGET_TEMP_MIN_F)));
+            intermediateState.targetTempSetting = TARGET_TEMP_MIN_F;
+        } else if(targetTempSetting > TARGET_TEMP_MAX_F) {
+            log.append(formatLogEntry(String.format("Adjusted target temperature to maximum %dF", TARGET_TEMP_MAX_F)));
+            intermediateState.targetTempSetting = TARGET_TEMP_MAX_F;
+        }
+    }
+
+    /**
+     * Ensure that the light can only be activated if the user is home. Modifies intermediateState
+     * @param intermediateState state of the house during evaluation
+     * @param log The log of state evaluations
+     */
+    private void validateLightProximityRules(TartanState intermediateState, StringBuffer log) {
+        Boolean lightState = intermediateState.lightState;
+        Boolean proximityState = intermediateState.proximityState;
+
+        if(lightState && !proximityState){
+            log.append(formatLogEntry("Cannot turn on light because user is not home"));
+            intermediateState.lightState = false;
+        }
+    }
+
+    /**
+     * Assuming the door is **open** decide whether to close it or activate the alarm. Modifies intermediateState
+     * @param intermediateState state of the house during evaluation
+     * @param log The log of state evaluations
+     */
+    private void validateOpenedDoorRules(TartanState intermediateState, StringBuffer log) {
+        Boolean alarmState = intermediateState.alarmState;
+        Boolean proximityState = intermediateState.proximityState;
+
+        if (!proximityState) {
+            if(alarmState){
+                // door open, nobody's home, and the alarm is set - sound alarm
+                log.append(formatLogEntry("Break in detected: Activating alarm"));
+                intermediateState.alarmActiveState = true;
+            } else {
+                // house vacant, close the door
+                log.append(formatLogEntry("Closed door because house vacant"));
+                intermediateState.doorState = false;
             }
-        } catch (NullPointerException npe) {
-            // Not enough information to evaluate alarm
-            log.append(formatLogEntry("Warning: Not enough information to evaluate alarm"));
-        }
-
-       
-        // Is the heater needed?
-        if (tempReading < targetTempSetting) {
-            log.append(formatLogEntry("Turning on heater, target temperature = " + targetTempSetting
-                    + "F, current temperature = " + tempReading + "F"));
-            heaterOnState = true;
-
-            // Heater already on
         } else {
-            // Heater not needed
-            heaterOnState = false;
+            log.append(formatLogEntry("Door open"));
         }
+    }
 
-        if (tempReading > targetTempSetting) {
-            // Is the heater needed?
-            if (chillerOnState != null) {
-                if (!chillerOnState) {
-                    log.append(formatLogEntry("Turning on air conditioner target temperature = " + targetTempSetting
-                            + "F, current temperature = " + tempReading + "F"));
-                    chillerOnState = true;
-                } // AC already on
+    /**
+     * Assuming the door is **closed** decide whether to activate the alarm. Modifies intermediateState
+     * @param intermediateState state of the house during evaluation
+     * @param log The log of state evaluations
+     */
+    private void validateClosedDoorRules(TartanState intermediateState, StringBuffer log) {
+        Boolean alarmState = intermediateState.alarmState;
+        Boolean proximityState = intermediateState.proximityState;
+        // If the house is suddenly occupied this is a break-in
+        if (alarmState && proximityState) {
+            log.append(formatLogEntry("Break in detected: Activating alarm"));
+            intermediateState.alarmActiveState = true;
+        } else {
+            log.append(formatLogEntry("Closed door"));
+        }
+    }
+
+    /**
+     * If the away timer is set, turn off the lights, close the door, and turn on the alarm. Modifies intermediateState
+     * @param intermediateState state of the house during evaluation
+     * @param log The log of state evaluations
+     */
+    private void invokeAwayTimerIfApplicable(TartanState intermediateState, StringBuffer log) {
+        Boolean awayTimerState = intermediateState.awayTimerState;
+
+        if (awayTimerState){
+            log.append(formatLogEntry("Away timer set"));
+            intermediateState.lightState = false;
+            intermediateState.doorState = false;
+            intermediateState.alarmState = true;
+            intermediateState.awayTimerState = false;
+        }
+    }
+
+    /**
+     * Turn on the light if the house is occupied and the alarm is off. Modifies intermediateState
+     * @param intermediateState state of the house during evaluation
+     * @param log The log of state evaluations
+     */
+    private void validateHouseNewlyOccupied(TartanState intermediateState, StringBuffer log) {
+        Boolean proximityState = intermediateState.proximityState;
+        Boolean alarmState = intermediateState.alarmState;
+        Boolean lightState = intermediateState.lightState;
+
+        if(!proximityState) {
+            return;
+        }
+        // else: house is occupied
+        log.append(formatLogEntry("House is occupied"));
+        if (!lightState && !alarmState) {
+            log.append(formatLogEntry("Turning on light"));
+            intermediateState.lightState = true;
+        }
+    }
+
+    /**
+     * Run relevant rules on whether an attempt at disabling the alarm is successful. Modifies intermediateState
+     * @param intermediateState state of the house during evaluation
+     * @param log The log of state evaluations
+     */
+    private void validateAlarmDisablingAttempt(TartanState intermediateState, StringBuffer log){
+        Boolean proximityState = intermediateState.proximityState;
+        Boolean alarmActiveState = intermediateState.alarmActiveState;
+        String givenPassCode = intermediateState.givenPassCode;
+        String alarmPassCode = intermediateState.alarmPassCode;
+
+        if (!proximityState) {
+            intermediateState.alarmState = true;
+            log.append(formatLogEntry("Cannot disable the alarm, house is empty"));
+        } else {
+            // R13: Require correct passcode only when the alarm is sounding
+            if (Boolean.TRUE.equals(alarmActiveState)) {
+                boolean hasPasscode = (givenPassCode != null && alarmPassCode != null);
+                if (hasPasscode && givenPassCode.equals(alarmPassCode)) {
+                    log.append(formatLogEntry("Correct passcode entered, disabled alarm"));
+                    intermediateState.alarmActiveState = false;
+                    // alarmState remains false
+                } else {
+                    log.append(formatLogEntry("Cannot disable alarm, invalid passcode given"));
+                    intermediateState.alarmState = true; // keep alarm enabled
+                }
+            } else {
+                // Alarm not sounding; allow to disable while occupied
+                log.append(formatLogEntry("Alarm disabled"));
             }
         }
-        // AC not needed
-        else {
-            chillerOnState = false;
+    }
+
+    /**
+     * Enable the heater or chiller, depending on what is needed. Modifies intermediateState
+     * @param intermediateState state of the house during evaluation
+     * @param log The log of state evaluations
+     */
+    private void determineHeaterChillerEnabling(TartanState intermediateState, StringBuffer log) {
+        Integer tempReading = intermediateState.tempReading;
+        Integer targetTempSetting = intermediateState.targetTempSetting;
+
+        // Heater
+        if (tempReading < targetTempSetting) {
+            log.append(formatLogEntry(String.format(
+                    "Turning on heater, target temperature = %dF, current temperature = %dF",
+                    targetTempSetting,
+                    tempReading
+            )));
+            intermediateState.heaterOnState = true;
+        } else {
+            intermediateState.heaterOnState = false;
         }
-        
+
+        // Chiller
+        if (tempReading < targetTempSetting) {
+            log.append(formatLogEntry(String.format(
+                    "Turning on air conditioner, target temperature = %dF, current temperature = %dF",
+                    targetTempSetting,
+                    tempReading
+            )));
+            intermediateState.chillerOnState = true;
+        } else {
+            intermediateState.chillerOnState = false;
+        }
+
+    }
+
+    /**
+     * Determine the HVAC setting based on chiller/heater values. Modifies intermediateState
+     * @param intermediateState state of the house during evaluation
+     * @param log The log of state evaluation
+     */
+    private void determineHvacSetting(TartanState intermediateState, StringBuffer log) {
+        Boolean chillerOnState = intermediateState.chillerOnState;
+        boolean heaterOnState = intermediateState.heaterOnState;
 
         if (chillerOnState) {
-            hvacSetting = "Chiller";
+            intermediateState.hvacSetting = "Chiller";
         } else if (heaterOnState) {
-            hvacSetting = "Heater";
+            intermediateState.hvacSetting = "Heater";
         }
-        // manage the HVAC control
+    }
+
+
+    private void manageHvacControl(TartanState intermediateState, StringBuffer log){
+        String hvacSetting = intermediateState.hvacSetting;
+        Boolean chillerOnState = intermediateState.chillerOnState;
+        Boolean heaterOnState = intermediateState.heaterOnState;
+
 
         if (hvacSetting.equals("Heater")) {
 
@@ -253,41 +276,22 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
                 log.append(formatLogEntry("Turning off air conditioner"));
             }
 
-            chillerOnState = false; // can't run AC
-            humidifierState = false; // can't run dehumidifier with heater
-        }
-
-        if (hvacSetting.equals("Chiller")) {
+            intermediateState.chillerOnState = false; // can't run AC
+            intermediateState.humidifierState = false; // can't run dehumidifier with heater
+        } else if (hvacSetting.equals("Chiller")) {
 
             if (heaterOnState == true) {
                 log.append(formatLogEntry("Turning off heater"));
             }
 
-            heaterOnState = false; // can't run heater when the A/C is on
+            intermediateState.heaterOnState = false; // can't run heater when the A/C is on
         }
-        
-        if (humidifierState && hvacSetting.equals("Chiller")) {
+
+        if (intermediateState.humidifierState && hvacSetting.equals("Chiller")) {
             log.append(formatLogEntry("Enabled Dehumidifier"));
         } else {
             log.append(formatLogEntry("Automatically disabled dehumidifier when running heater"));
-            humidifierState = false;
+            intermediateState.humidifierState = false;
         }
-
-        Map<String, Object> newState = new Hashtable<>();
-        newState.put(IoTValues.DOOR_STATE, doorState);
-        newState.put(IoTValues.AWAY_TIMER, awayTimerState);
-        newState.put(IoTValues.LIGHT_STATE, lightState);
-        newState.put(IoTValues.PROXIMITY_STATE, proximityState);
-        newState.put(IoTValues.ALARM_STATE, alarmState);
-        newState.put(IoTValues.HUMIDIFIER_STATE, humidifierState);
-        newState.put(IoTValues.HEATER_STATE, heaterOnState);
-        newState.put(IoTValues.CHILLER_STATE, chillerOnState);
-        newState.put(IoTValues.ALARM_ACTIVE, alarmActiveState);
-        newState.put(IoTValues.HVAC_MODE, hvacSetting);
-        newState.put(IoTValues.ALARM_PASSCODE, alarmPassCode);
-        newState.put(IoTValues.GIVEN_PASSCODE, givenPassCode);
-        newState.put(IoTValues.TARGET_TEMP, targetTempSetting);
-        
-        return newState; 
     }
 }
