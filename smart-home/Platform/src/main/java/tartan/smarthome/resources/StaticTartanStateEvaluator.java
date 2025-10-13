@@ -2,7 +2,6 @@ package tartan.smarthome.resources;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
-import java.util.Map;
 
 public class StaticTartanStateEvaluator implements TartanStateEvaluator {
     static final int TARGET_TEMP_MIN_F = 50;

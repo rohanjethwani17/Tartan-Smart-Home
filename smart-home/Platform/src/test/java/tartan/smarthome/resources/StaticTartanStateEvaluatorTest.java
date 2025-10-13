@@ -2,10 +2,6 @@ package tartan.smarthome.resources;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import tartan.smarthome.resources.iotcontroller.IoTValues;
-
-import java.util.Hashtable;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
