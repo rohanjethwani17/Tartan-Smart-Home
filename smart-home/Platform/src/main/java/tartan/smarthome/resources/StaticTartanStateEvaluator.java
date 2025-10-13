@@ -23,49 +23,48 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
      * @return The evaluated state
      */
     @Override
-    public Map<String, Object> evaluateState(Map<String, Object> inState, StringBuffer log) {
+    public TartanState evaluateState(TartanState inState, StringBuffer log) {
 
         System.out.println("Evaluating new state statically");
-        TartanState intermediateState = TartanState.fromStateMap(inState);
 
 
         // Enforce target temperature bounds (R16)
-        validateTargetTempSetting(intermediateState, log);
+        validateTargetTempSetting(inState, log);
 
         // Ensure light can only be activated if the user is home
-        validateLightProximityRules(intermediateState, log);
+        validateLightProximityRules(inState, log);
 
-        if (intermediateState.doorState) {
+        if (inState.doorState) {
             // if the door is open
-            validateOpenedDoorRules(intermediateState, log);
+            validateOpenedDoorRules(inState, log);
         } else {
-            validateClosedDoorRules(intermediateState, log);
+            validateClosedDoorRules(inState, log);
         }
 
         // Auto lock the house
-        invokeAwayTimerIfApplicable(intermediateState, log);
+        invokeAwayTimerIfApplicable(inState, log);
 
         // the user has arrived
-        validateHouseNewlyOccupied(intermediateState, log);
+        validateHouseNewlyOccupied(inState, log);
 
         // set the alarm
-        if (intermediateState.alarmState) {
+        if (inState.alarmState) {
             log.append(formatLogEntry("Alarm enabled"));
         } else { // attempt to disable alarm
-            validateAlarmDisablingAttempt(intermediateState, log);
+            validateAlarmDisablingAttempt(inState, log);
         }
 
-        if (!intermediateState.alarmState) {
+        if (!inState.alarmState) {
             log.append(formatLogEntry("Alarm disabled"));
-            intermediateState.alarmActiveState = false;
+            inState.alarmActiveState = false;
         }
 
 
-        determineHeaterChillerEnabling(intermediateState, log);
-        determineHvacSetting(intermediateState, log);
-        manageHvacControl(intermediateState, log);
+        determineHeaterChillerEnabling(inState, log);
+        determineHvacSetting(inState, log);
+        manageHvacControl(inState, log);
 
-        return intermediateState.toStateMap();
+        return inState;
     }
 
     /**
