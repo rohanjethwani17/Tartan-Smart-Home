@@ -184,7 +184,7 @@ class StaticTartanStateEvaluatorTest {
 
 class StaticTartanStateEvaluatorUC13EquivalenceClassesTest {
     private StaticTartanStateEvaluator evaluator;
-    private Map<String, Object> state;
+    private TartanState state;
     private StringBuffer log;
 
     @BeforeEach
@@ -196,42 +196,58 @@ class StaticTartanStateEvaluatorUC13EquivalenceClassesTest {
 
     @Test
     public void test_AC_off_DH_off_valid() {
-        state.put(IoTValues.CHILLER_STATE, false);
-        state.put(IoTValues.HUMIDIFIER_STATE, false);
+        state.setChillerOnState(false);
+        state.setHumidifierState(false);
 
-        Map<String, Object> evaluatedState = evaluator.evaluateState(state, log);
-        assertFalse((Boolean) evaluatedState.get(IoTValues.CHILLER_STATE));
-        assertFalse((Boolean) evaluatedState.get(IoTValues.HUMIDIFIER_STATE));
+        // set the temperature and target so the AC doesn't automatically enable
+        state.setTempReading(60);
+        state.setTargetTempSetting(61);
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertFalse(evaluatedState.getChillerOnState());
+        assertFalse(evaluatedState.getHumidifierState());
     }
 
     @Test
     public void test_AC_on_DH_off_valid() {
-        state.put(IoTValues.CHILLER_STATE, true);
-        state.put(IoTValues.HUMIDIFIER_STATE, false);
+        state.setChillerOnState(true);
+        state.setHumidifierState(false);
 
-        Map<String, Object> evaluatedState = evaluator.evaluateState(state, log);
-        assertTrue((Boolean) evaluatedState.get(IoTValues.CHILLER_STATE));
-        assertFalse((Boolean) evaluatedState.get(IoTValues.HUMIDIFIER_STATE));
+        // set the temperature and target so the AC doesn't automatically disable
+        state.setTempReading(60);
+        state.setTargetTempSetting(59);
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertTrue(evaluatedState.getChillerOnState());
+        assertFalse(evaluatedState.getHumidifierState());
     }
 
     @Test
     public void test_AC_on_DH_on_valid() {
-        state.put(IoTValues.CHILLER_STATE, true);
-        state.put(IoTValues.HUMIDIFIER_STATE, true);
+        state.setChillerOnState(true);
+        state.setHumidifierState(true);
 
-        Map<String, Object> evaluatedState = evaluator.evaluateState(state, log);
-        assertTrue((Boolean) evaluatedState.get(IoTValues.CHILLER_STATE));
-        assertTrue((Boolean) evaluatedState.get(IoTValues.HUMIDIFIER_STATE));
+        // set the temperature and target so the AC doesn't automatically disable
+        state.setTempReading(60);
+        state.setTargetTempSetting(59);
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertTrue(evaluatedState.getChillerOnState());
+        assertTrue(evaluatedState.getHumidifierState());
     }
 
     @Test
     public void test_AC_off_DH_on_invalid() {
-        state.put(IoTValues.CHILLER_STATE, false);
-        state.put(IoTValues.HUMIDIFIER_STATE, true);
+        state.setChillerOnState(false);
+        state.setHumidifierState(false);
 
-        Map<String, Object> evaluatedState = evaluator.evaluateState(state, log);
-        Boolean chillerState = (Boolean) evaluatedState.get(IoTValues.CHILLER_STATE);
-        Boolean humidifierState = (Boolean) evaluatedState.get(IoTValues.HUMIDIFIER_STATE);
+        // set the temperature and target so the AC doesn't automatically enable
+        state.setTempReading(60);
+        state.setTargetTempSetting(61);
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        Boolean chillerState = evaluatedState.getChillerOnState();
+        Boolean humidifierState = evaluatedState.getHumidifierState();
         // it should not be the case that things are as they were before (AC off and DH on)
         assertFalse(
                 !chillerState && humidifierState
