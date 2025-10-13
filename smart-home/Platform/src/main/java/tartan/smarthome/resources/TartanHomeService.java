@@ -81,10 +81,10 @@ public class TartanHomeService {
         TartanHome temp = new TartanHome();
         temp.setAlarmDelay(alarmDelay);
 
-        Map<String, Object> userSettings = new Hashtable<String, Object>();
-        userSettings.put(IoTValues.ALARM_DELAY, Integer.parseInt(this.alarmDelay));
-        userSettings.put(IoTValues.TARGET_TEMP, Integer.parseInt(this.targetTemp));
-        userSettings.put(IoTValues.ALARM_PASSCODE, this.alarmPasscode);
+        TartanState userSettings = new TartanState();
+        userSettings.setAlarmDelay(Integer.parseInt(this.alarmDelay));
+        userSettings.setTargetTempSetting(Integer.parseInt(this.targetTemp));
+        userSettings.setAlarmPassCode(this.alarmPasscode);
         controller.updateSettings(userSettings);
 
         LOGGER.info("House " + this.name + " configured");
@@ -305,15 +305,15 @@ public class TartanHomeService {
     public Boolean setState(TartanHome h) {
         synchronized (controller) {
                         
-            Map<String, Object> userSettings = new Hashtable<String, Object>();
+            TartanState userSettings = new TartanState();
             if (h.getAlarmDelay()!=null) {
                 this.alarmDelay = h.getAlarmDelay();
-                userSettings.put(IoTValues.ALARM_DELAY, Integer.parseInt(this.alarmDelay)); 
+                userSettings.setAlarmDelay(Integer.parseInt(this.alarmDelay));
 
             }
             if (h.getTargetTemp()!=null) {
                 this.targetTemp = h.getTargetTemp();
-                userSettings.put(IoTValues.TARGET_TEMP, Integer.parseInt(this.targetTemp)); 
+                userSettings.setTargetTempSetting(Integer.parseInt(this.targetTemp));
             }           
             controller.updateSettings(userSettings);  
             controller.processStateUpdate(toIotState(h));  
@@ -338,15 +338,17 @@ public class TartanHomeService {
         tartanHome.setEventLog(controller.getLogMessages());
         tartanHome.setAuthenticated(String.valueOf(this.authenticated));
 
+        // TODO use TartanState here instead of Map<String, Object>.
+        //  Maybe extract big for (String s: keys) loop into function/class?
         Map<String, Object> state = null;
         synchronized (controller) {
-            state = controller.getCurrentState();            
+            state = controller.getCurrentState().toStateMap();
             for (String l : controller.getLogMessages()) {
                 LOGGER.info(l);
             }
         }
         if (state == null) {
-            LOGGER.info("zUsing default state");
+            LOGGER.info("Using default state");
             // There is no state, but something must be returned.
 
             tartanHome.setTemperature(TartanHomeValues.UNKNOWN);
@@ -449,7 +451,8 @@ public class TartanHomeService {
      * @param tartanHome the state
      * @return a map of settings appropriate for the hardware
      */
-    private Map<String, Object> toIotState(TartanHome tartanHome) {
+    private TartanState toIotState(TartanHome tartanHome) {
+        // TODO use TartanState within this function instead of converting between Map<String, Object> and it.
         Map<String, Object> state = new Hashtable<>();
         
         if (tartanHome.getProximity()!=null) {
@@ -485,7 +488,7 @@ public class TartanHomeService {
             Hashtable<String, Object> ht = new Hashtable<String, Object>(){
                 {put(IoTValues.ALARM_DELAY,Integer.parseInt(TartanHomeService.this.alarmDelay));}
             };
-            controller.updateSettings(ht);
+            controller.updateSettings(TartanState.fromStateMap(ht));
         }
 
         if (tartanHome.getHvacMode()!=null) {
@@ -509,7 +512,7 @@ public class TartanHomeService {
             LOGGER.info("State: " + e.getKey() + "=" + e.getValue());
         }
 
-        return state;
+        return TartanState.fromStateMap(state);
     }
 
     /**
