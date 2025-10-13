@@ -1,9 +1,8 @@
 package tartan.smarthome.resources.iotcontroller;
 
-import java.util.Hashtable;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
+import tartan.smarthome.resources.TartanState;
+
+import java.util.*;
 
 /**
  * Manages connection to the IoT house
@@ -36,7 +35,7 @@ public class IoTConnectManager {
      * Get the state from the house
      * @return the new state of things
      */
-    public synchronized Map<String,Object> getState() {
+    public synchronized TartanState getState() {
 
         System.out.println("Requesting state");
 
@@ -57,122 +56,48 @@ public class IoTConnectManager {
      * @param state the new state
      * @return true if the state was accepted; false otherwise
      */
-    public synchronized Boolean setState(Map<String, Object> state) {
+    public synchronized Boolean setState(TartanState state) {
+
+        Vector<String> newStateVector = new Vector<>();
+
+        if(state.getDoorState() != null){
+            String doorStateString = state.getDoorState() ? IoTValues.DOOR_OPEN : IoTValues.DOOR_CLOSE;
+            newStateVector.add(IoTValues.DOOR_STATE + IoTValues.PARAM_EQ + doorStateString);
+        }
+        if(state.getLightState() != null){
+            String lightStateString = state.getLightState() ? IoTValues.LIGHT_ON : IoTValues.LIGHT_OFF;
+            newStateVector.add(IoTValues.LIGHT_STATE + IoTValues.PARAM_EQ + lightStateString);
+        }
+        if(state.getAlarmState() != null){
+            String alarmStateString = state.getAlarmState()? IoTValues.ALARM_ENABLED : IoTValues.ALARM_DISABLED;
+            newStateVector.add(IoTValues.ALARM_STATE + IoTValues.PARAM_EQ + alarmStateString);
+        }
+        if(state.getAlarmActiveState() != null){
+            String alarmActiveStateString = state.getAlarmActiveState() ? IoTValues.ALARM_ON : IoTValues.ALARM_OFF;
+            newStateVector.add(IoTValues.ALARM_ACTIVE + IoTValues.PARAM_EQ + alarmActiveStateString);
+        }
+        if(state.getHumidifierState() != null){
+            String humidifierStateString = state.getHumidifierState() ? IoTValues.HUMIDIFIER_ON : IoTValues.HUMIDIFIER_OFF;
+            newStateVector.add(IoTValues.HUMIDIFIER_STATE + IoTValues.PARAM_EQ + humidifierStateString);
+        }
+        if(state.getChillerOnState() != null){
+            String chillerStateString = state.getChillerOnState() ? IoTValues.CHILLER_ON : IoTValues.CHILLER_OFF;
+            newStateVector.add(IoTValues.CHILLER_STATE + IoTValues.PARAM_EQ + chillerStateString);
+        }
+        if(state.getHeaterOnState() != null){
+            String heaterStateString = state.getHeaterOnState() ? IoTValues.HEATER_ON : IoTValues.HEATER_OFF;
+            newStateVector.add(IoTValues.HEATER_STATE + IoTValues.PARAM_EQ + heaterStateString);
+        }
 
         StringBuffer newState = new StringBuffer();
-        Set<String> keys = state.keySet();
-        int count = 0;
-        for (String key : keys) {
-
-            if (key.equals(IoTValues.DOOR_STATE)) {
-
-                Boolean newDoorState = (Boolean) state.get(key);
-                newState.append(IoTValues.DOOR_STATE);
-                newState.append(IoTValues.PARAM_EQ);
-                if (newDoorState) {
-                    newState.append(IoTValues.DOOR_OPEN);
-                } else {
-                    newState.append(IoTValues.DOOR_CLOSE);
-                }
-                count++;
-                if (count<keys.size()) {
-                    newState.append(IoTValues.PARAM_DELIM);
-                }
-            } else if (key.equals(IoTValues.LIGHT_STATE)) {
-                Boolean newLightState = (Boolean) state.get(key);
-                newState.append(IoTValues.LIGHT_STATE);
-                newState.append(IoTValues.PARAM_EQ);
-                if (newLightState) {
-                    newState.append(IoTValues.LIGHT_ON);
-                } else {
-                    newState.append(IoTValues.LIGHT_OFF);
-                }
-                count++;
-                if (count<keys.size()) {
-                    newState.append(IoTValues.PARAM_DELIM);
-                }
-            } else if (key.equals(IoTValues.LIGHT_STATE)) {
-                Boolean newLightState = (Boolean) state.get(key);
-                newState.append(IoTValues.LIGHT_STATE);
-                newState.append(IoTValues.PARAM_EQ);
-                if (newLightState) {
-                    newState.append(IoTValues.LIGHT_ON);
-                } else {
-                    newState.append(IoTValues.LIGHT_OFF);
-                }
-                count++;
-                if (count<keys.size()) {
-                    newState.append(IoTValues.PARAM_DELIM);
-                }
-            } else if (key.equals(IoTValues.ALARM_STATE)) {
-                Boolean newAlarmState = (Boolean) state.get(key);
-                newState.append(IoTValues.ALARM_STATE);
-                newState.append(IoTValues.PARAM_EQ);
-                if (newAlarmState) {
-                    newState.append(IoTValues.ALARM_ENABLED);
-                } else {
-                    newState.append(IoTValues.ALARM_DISABLED);
-                }
-                count++;
-                if (count<keys.size()) {
-                    newState.append(IoTValues.PARAM_DELIM);
-                }
-            } else if (key.equals(IoTValues.ALARM_ACTIVE)) {
-                Boolean newAlarmState = (Boolean) state.get(key);
-                newState.append(IoTValues.ALARM_ACTIVE);
-                newState.append(IoTValues.PARAM_EQ);
-                if (newAlarmState) {
-                    newState.append(IoTValues.ALARM_ON);
-                } else {
-                    newState.append(IoTValues.ALARM_OFF);
-                }
-                count++;
-                if (count<keys.size()) {
-                    newState.append(IoTValues.PARAM_DELIM);
-                }
-            }else if (key.equals(IoTValues.HUMIDIFIER_STATE)) {
-                Boolean newHumidifierState = (Boolean) state.get(key);
-                newState.append(IoTValues.HUMIDIFIER_STATE);
-                newState.append(IoTValues.PARAM_EQ);
-                if (newHumidifierState) {
-                    newState.append(IoTValues.HUMIDIFIER_ON);
-                } else {
-                    newState.append(IoTValues.HUMIDIFIER_OFF);
-                }
-                count++;
-                if (count<keys.size()) {
-                    newState.append(IoTValues.PARAM_DELIM);
-                }
-            } else if (key.equals(IoTValues.CHILLER_STATE)) {
-                Boolean newChillerState = (Boolean) state.get(key);
-                newState.append(IoTValues.CHILLER_STATE);
-                newState.append(IoTValues.PARAM_EQ);
-                if (newChillerState) {
-                    newState.append(IoTValues.CHILLER_ON);
-                } else {
-                    newState.append(IoTValues.CHILLER_OFF);
-                }
-                count++;
-                if (count<keys.size()) {
-                    newState.append(IoTValues.PARAM_DELIM);
-                }
-            } else if (key.equals(IoTValues.HEATER_STATE)) {
-                Boolean newHeaterState = (Boolean) state.get(key);
-                newState.append(IoTValues.HEATER_STATE);
-                newState.append(IoTValues.PARAM_EQ);
-                if (newHeaterState) {
-                    newState.append(IoTValues.HEATER_ON);
-                } else {
-                    newState.append(IoTValues.HEATER_OFF);
-                }
-                count++;
-                if (count<keys.size()) {
-                    newState.append(IoTValues.PARAM_DELIM);
-                }
+        // merge the newStateVector into the newState buffer by separating entries with IoTValues.PARAM_DELIM
+        for(int i=0; i<newStateVector.size(); i++){
+            newState.append(newStateVector.get(i));
+            if(i < newStateVector.size() - 1) {
+                newState.append(IoTValues.PARAM_DELIM);
             }
         }
 
-        //newState.append(IoTValues.MSG_END); // append protocol request terminator
         StringBuffer msg
                 = new StringBuffer(IoTValues.SET_STATE + IoTValues.MSG_DELIM + newState.toString() + IoTValues.MSG_END);
         System.out.println("New state for house: " + msg.toString());
@@ -195,17 +120,17 @@ public class IoTConnectManager {
      * @param stateUpdateMsg the new state message
      * @return the new state
      */
-    private Map<String,Object> handleStateUpdate(String stateUpdateMsg) {
+    private TartanState handleStateUpdate(String stateUpdateMsg) {
 
         if (stateUpdateMsg == null) {
             return null;
         }
-        if (stateUpdateMsg.length() == 0) {
+        if (stateUpdateMsg.isEmpty()) {
             return null;
         }
 
         System.out.println("State Update: " + stateUpdateMsg);
-        Hashtable<String,Object> state = new Hashtable<String, Object>();
+        TartanState state = new TartanState();
 
         String[] req = stateUpdateMsg.split(IoTValues.MSG_DELIM);
 
@@ -232,66 +157,34 @@ public class IoTConnectManager {
         // process the new state
         while (pt.hasMoreTokens()) {
             String param = pt.nextToken();
-            String data[] = param.split(IoTValues.PARAM_EQ);
+            String[] data = param.split(IoTValues.PARAM_EQ);
             Integer val = Integer.parseInt(data[1]);
 
             if (data[0].equals(IoTValues.LIGHT_STATE)) {
-                if (val == 1) {
-                    state.put(IoTValues.LIGHT_STATE, true);
-                } else {
-                    state.put(IoTValues.LIGHT_STATE, false);
-                }
+                state.setLightState(val == 1);
             } else if (data[0].equals(IoTValues.ALARM_STATE)) {
-                if (val == 1) {
-                    state.put(IoTValues.ALARM_STATE, true);
-                } else {
-                state.put(IoTValues.ALARM_STATE, false);
-                }
+                state.setAlarmState(val == 1);
             } else if (data[0].equals(IoTValues.DOOR_STATE)) {
-                if (val == 1) {
-                    state.put(IoTValues.DOOR_STATE, true);
-                } else {
-                    state.put(IoTValues.DOOR_STATE, false);
-                }
+                state.setDoorState(val == 1);
             }  else if (data[0].equals(IoTValues.HUMIDIFIER_STATE)) {
-                if (val == 1) {
-                    state.put(IoTValues.HUMIDIFIER_STATE, true);
-                } else {
-                    state.put(IoTValues.HUMIDIFIER_STATE, false);
-                }
+                state.setHumidifierState(val == 1);
             } else if (data[0].equals(IoTValues.PROXIMITY_STATE)) {
-                if (val == 1) {
-                    state.put(IoTValues.PROXIMITY_STATE, true);
-                } else {
-                    state.put(IoTValues.PROXIMITY_STATE, false);
-                }
+                state.setProximityState(val == 1);
             } else if (data[0].equals(IoTValues.ALARM_ACTIVE)) {
-                if (val == 1) {
-                    state.put(IoTValues.ALARM_ACTIVE, true);
-                } else {
-                    state.put(IoTValues.ALARM_ACTIVE, false);
-                }
+                state.setAlarmActiveState(val == 1);
             } else if (data[0].equals(IoTValues.HEATER_STATE)) {
-                if (val == 1) {
-                    state.put(IoTValues.HEATER_STATE, true);
-                } else {
-                    state.put(IoTValues.HEATER_STATE, false);
-                }
+                state.setHeaterOnState(val == 1);
             } else if (data[0].equals(IoTValues.CHILLER_STATE)) {
-                if (val == 1) {
-                    state.put(IoTValues.CHILLER_STATE, true);
-                } else {
-                    state.put(IoTValues.CHILLER_STATE, false);
-                }
+                state.setChillerOnState(val == 1);
             } else if (data[0].equals(IoTValues.TEMP_READING)) {
-                state.put(IoTValues.TEMP_READING, val);
+                state.setTempReading(val);
             } else if (data[0].equals(IoTValues.HUMIDITY_READING)) {
-                state.put(IoTValues.HUMIDITY_READING, val);
+                state.setHumidityReading(val);
             } else if (data[0].equals(IoTValues.HVAC_MODE)) {
                 if (val == 1) {
-                    state.put(IoTValues.HVAC_MODE, "Heater");
+                    state.setHvacSetting("Heater");
                 } else {
-                    state.put(IoTValues.HVAC_MODE, "Chiller");
+                    state.setHvacSetting("Chiller");
                 }
             }
         }

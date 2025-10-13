@@ -9,29 +9,28 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
 class StaticTartanStateEvaluatorTest {
     private StaticTartanStateEvaluator evaluator;
-    private Map<String, Object> state;
+    private TartanState state;
     private StringBuffer log;
 
-    public static Map<String, Object> createPlausibleTestState() {
-        Map<String, Object> output = new Hashtable<String, Object>();
-        output.put(IoTValues.TEMP_READING, 68);
-        output.put(IoTValues.HUMIDITY_READING, 50);
-        output.put(IoTValues.TARGET_TEMP, 72);
-        output.put(IoTValues.HUMIDIFIER_STATE, false);
-        output.put(IoTValues.DOOR_STATE, false);
-        output.put(IoTValues.LIGHT_STATE, false);
-        output.put(IoTValues.PROXIMITY_STATE, false);
-        output.put(IoTValues.ALARM_STATE, false);
-        output.put(IoTValues.HEATER_STATE, false);
-        output.put(IoTValues.CHILLER_STATE, false);
-        output.put(IoTValues.HVAC_MODE, "OFF");
-        output.put(IoTValues.ALARM_PASSCODE, "passcode");
-        output.put(IoTValues.GIVEN_PASSCODE, "");
-        output.put(IoTValues.AWAY_TIMER, false);
-        output.put(IoTValues.ALARM_ACTIVE, false);
+    public static TartanState createPlausibleTestState() {
+        TartanState output = new TartanState();
+        output.setTempReading(68);
+        output.setHumidityReading(50);
+        output.setTargetTempSetting(72);
+        output.setHumidifierState(false);
+        output.setDoorState(false);
+        output.setLightState(false);
+        output.setProximityState(false);
+        output.setAlarmState(false);
+        output.setHeaterOnState(false);
+        output.setChillerOnState(false);
+        output.setHvacSetting("OFF");
+        output.setAlarmPassCode("passcode");
+        output.setGivenPassCode("");
+        output.setAwayTimerState(false);
+        output.setAlarmActiveState(false);
         return output;
     }
 
@@ -49,14 +48,13 @@ class StaticTartanStateEvaluatorTest {
     @Test
     public void testR1_VacantHouseTurnsLightOff() {
         // house vacant + light on
-        state.put(IoTValues.PROXIMITY_STATE, false);
-        state.put(IoTValues.LIGHT_STATE, true);
+        state.setProximityState(false);
+        state.setLightState(true);
 
-        Map<String, Object> evaluatedState = evaluator.evaluateState(state, log);
-        boolean lightState = (boolean) evaluatedState.get(IoTValues.LIGHT_STATE);
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
 
         // lights off
-        assertFalse(lightState, "Light should not be on when the house is vacant.");
+        assertFalse(evaluatedState.getLightState(), "Light should not be on when the house is vacant.");
     }
 
     /**
@@ -66,14 +64,13 @@ class StaticTartanStateEvaluatorTest {
     @Test
     public void testR3_VacantHouseClosesDoor() {
         // house vacant + door open
-        state.put(IoTValues.PROXIMITY_STATE, false);
-        state.put(IoTValues.DOOR_STATE, true);
+        state.setProximityState(false);
+        state.setDoorState(true);
 
-        Map<String, Object> evaluatedState = evaluator.evaluateState(state, log);
-        boolean doorState = (boolean) evaluatedState.get(IoTValues.DOOR_STATE);
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
 
         // door closed
-        assertFalse(doorState, "Door should be closed if house is vacant.");
+        assertFalse(evaluatedState.getDoorState(), "Door should be closed if house is vacant.");
     }
 
     /**
@@ -83,19 +80,16 @@ class StaticTartanStateEvaluatorTest {
     @Test
     public void testR8_OccupiedWithDisabledAlarmTurnsLightOn() {
         // house occupied + alarm off + light off
-        state.put(IoTValues.PROXIMITY_STATE, true);
-        state.put(IoTValues.ALARM_STATE, false);
-        state.put(IoTValues.LIGHT_STATE, false);
+        state.setProximityState(true);
+        state.setAlarmState(false);
+        state.setLightState(false);
 
-        Map<String, Object> evaluatedState = evaluator.evaluateState(state, log);
-        boolean proximityState = (boolean) evaluatedState.get(IoTValues.PROXIMITY_STATE);
-        boolean alarmState = (boolean) evaluatedState.get(IoTValues.ALARM_STATE);
-        boolean lightState = (boolean) evaluatedState.get(IoTValues.LIGHT_STATE);
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
 
         // house occupied + alarm off + light on
-        assertTrue(proximityState, "House should be occupied.");
-        assertFalse(alarmState, "Alarm should be off.");
-        assertTrue(lightState, "Light should turn on.");
+        assertTrue(evaluatedState.getProximityState(), "House should be occupied.");
+        assertFalse(evaluatedState.getAlarmState(), "Alarm should be off.");
+        assertTrue(evaluatedState.getLightState(), "Light should turn on.");
     }
 
     /**
@@ -105,12 +99,12 @@ class StaticTartanStateEvaluatorTest {
     @Test
     public void testR10_NoSimultaneousHeaterDehumidifier() {
         // heater on + humidifier on
-        state.put(IoTValues.HEATER_STATE, true);
-        state.put(IoTValues.HUMIDIFIER_STATE, true);
+        state.setHeaterOnState(true);
+        state.setHumidifierState(true);
 
-        Map<String, Object> evaluatedState = evaluator.evaluateState(state, log);
-        boolean heaterState = (Boolean) evaluatedState.get(IoTValues.HEATER_STATE);
-        boolean humidifierState = (Boolean) evaluatedState.get(IoTValues.HUMIDIFIER_STATE);
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        boolean heaterState = evaluatedState.getHeaterOnState();
+        boolean humidifierState = evaluatedState.getHumidifierState();
 
         // heater and humidifier not on at the same time
         assertFalse(heaterState && humidifierState, "Heater and humidifier cannot be on at the same time.");
@@ -123,28 +117,28 @@ class StaticTartanStateEvaluatorTest {
     @Test
     public void testR13_CannotDisableAlarmWithWrongPasscode() {
         // occupied house, alarm sounding
-        state.put(IoTValues.PROXIMITY_STATE, true);
-        state.put(IoTValues.ALARM_ACTIVE, true);
+        state.setProximityState(true);
+        state.setAlarmActiveState(true);
         // user attempts to disable (set alarm to false) with wrong passcode
-        state.put(IoTValues.GIVEN_PASSCODE, "wrong");
-        state.put(IoTValues.ALARM_STATE, false);
+        state.setGivenPassCode("wrong");
+        state.setAlarmState(false);
 
-        Map<String, Object> evaluated = evaluator.evaluateState(state, log);
-        assertTrue((Boolean) evaluated.get(IoTValues.ALARM_STATE),
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertTrue(evaluatedState.getAlarmState(),
                 "Alarm should remain enabled with an incorrect passcode.");
     }
 
     @Test
     public void testR13_DisableAlarmWithCorrectPasscode() {
         // occupied house, alarm sounding
-        state.put(IoTValues.PROXIMITY_STATE, true);
-        state.put(IoTValues.ALARM_ACTIVE, true);
+        state.setProximityState(true);
+        state.setAlarmActiveState(true);
         // user provides correct passcode and requests disable
-        state.put(IoTValues.GIVEN_PASSCODE, "passcode");
-        state.put(IoTValues.ALARM_STATE, false);
+        state.setGivenPassCode("passcode");
+        state.setAlarmState(false);
 
-        Map<String, Object> evaluated = evaluator.evaluateState(state, log);
-        assertFalse((Boolean) evaluated.get(IoTValues.ALARM_STATE),
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertFalse(evaluatedState.getAlarmState(),
                 "Alarm should be disabled with the correct passcode.");
     }
 
@@ -156,33 +150,33 @@ class StaticTartanStateEvaluatorTest {
     public void testR16_targetTemperatureMustBeWithin50to80F() {
         // --- Accept lower bound (50°F) ---
         {
-            state.put(IoTValues.TARGET_TEMP, 50);
-            Map<String, Object> result = evaluator.evaluateState(state, log);
-            assertEquals(50, result.get(IoTValues.TARGET_TEMP),
+            state.setTargetTempSetting(50);
+            TartanState evaluatedState = evaluator.evaluateState(state, log);
+            assertEquals(50, evaluatedState.getTargetTempSetting(),
                     "Target temperature 50°F should be accepted (lower bound).");
         }
 
         // Reject below min (49°F): clamp to 50°F 
         {
-            state.put(IoTValues.TARGET_TEMP, 49);
-            Map<String, Object> result = evaluator.evaluateState(state, log);
-            assertEquals(50, result.get(IoTValues.TARGET_TEMP),
+            state.setTargetTempSetting(49);
+            TartanState evaluatedState = evaluator.evaluateState(state, log);
+            assertEquals(50, evaluatedState.getTargetTempSetting(),
                     "49°F is out of range; value should clamp to 50°F.");
         }
 
         // Accept upper bound (80°F)
         {
-            state.put(IoTValues.TARGET_TEMP, 80);
-            Map<String, Object> result = evaluator.evaluateState(state, log);
-            assertEquals(80, result.get(IoTValues.TARGET_TEMP),
+            state.setTargetTempSetting(80);
+            TartanState evaluatedState = evaluator.evaluateState(state, log);
+            assertEquals(80, evaluatedState.getTargetTempSetting(),
                     "Target temperature 80°F should be accepted (upper bound).");
         }
 
         // Reject above max (81°F): clamp to 80°F 
         {
-            state.put(IoTValues.TARGET_TEMP, 81);
-            Map<String, Object> result = evaluator.evaluateState(state, log);
-            assertEquals(80, result.get(IoTValues.TARGET_TEMP),
+            state.setTargetTempSetting(81);
+            TartanState evaluatedState = evaluator.evaluateState(state, log);
+            assertEquals(80, evaluatedState.getTargetTempSetting(),
                     "81°F is out of range; value should clamp to 80°F.");
         }
     }
