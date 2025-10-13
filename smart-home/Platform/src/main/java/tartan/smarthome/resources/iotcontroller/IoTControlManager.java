@@ -4,6 +4,7 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import tartan.smarthome.resources.TartanState;
 import tartan.smarthome.resources.TartanStateEvaluator;
 
 /**
@@ -21,7 +22,7 @@ public class IoTControlManager {
     private IoTConnectManager connMgr;
 
     /** the user settings */
-    private Hashtable<String, Object> userSettings;
+    private TartanState userSettings;
 
     private Vector<UserLoginInfo> users = new Vector<UserLoginInfo>();
 
@@ -39,19 +40,19 @@ public class IoTControlManager {
     /** Handle updates to the house state */
     private TartanStateEvaluator stateEvaluator;
 
-    private Map<String, Object> lastState;  
+    private TartanState lastState;
 
     /**
      * Constructor for the controller
      *
-     * @param user     the user name
+     * @param user     the username
      * @param password the password
      */
     public IoTControlManager(String user, String password, TartanStateEvaluator evaluator) {
 
         logMessages = new Vector<String>();
 
-        userSettings = new Hashtable<String, Object>();
+        userSettings = new TartanState();
 
         settingsPath = null;
 
@@ -63,7 +64,7 @@ public class IoTControlManager {
 
         connMgr = null;
 
-        lastState = new Hashtable<>();
+        lastState = new TartanState();
     }
 
     /**
@@ -109,12 +110,12 @@ public class IoTControlManager {
         String alarmPassCode = props.getProperty(IoTValues.ALARM_PASSCODE, "passcode");
         Integer alarmDelay = Integer.parseInt(props.getProperty(IoTValues.ALARM_DELAY, "5"));
 
-        Map<String, Object> initialSettings = new Hashtable<String, Object>();
-        initialSettings.put(IoTValues.ALARM_DELAY, alarmDelay);
-        initialSettings.put(IoTValues.ALARM_PASSCODE, alarmPassCode);
+        TartanState initialSettings = new TartanState();
+        initialSettings.setAlarmDelay(alarmDelay);
+        initialSettings.setAlarmPassCode(alarmPassCode);
         
         // The away timer is not set to start
-        lastState.put(IoTValues.AWAY_TIMER, false);
+        lastState.setAwayTimerState(false);
 
         // update the settings
         updateSettings(initialSettings);
@@ -125,9 +126,9 @@ public class IoTControlManager {
      *
      * @param newSettings the new user settings.
      */
-    public void updateSettings(Map<String, Object> newSettings) {
+    public void updateSettings(TartanState newSettings) {
         if (userSettings != null && newSettings != null) {
-            userSettings.putAll(newSettings);
+            userSettings.mergeState(newSettings);
         }
     }
 
@@ -136,7 +137,7 @@ public class IoTControlManager {
      * 
      * @return the user settings
      */
-    public Hashtable<String, Object> getUserSettings() {
+    public TartanState getUserSettings() {
         return userSettings;
     }
 
@@ -148,31 +149,31 @@ public class IoTControlManager {
      * User-initiated state update
      * @param stateUpdate
      */
-    public void processStateUpdate(Map<String, Object> stateUpdate) {
+    public void processStateUpdate(TartanState stateUpdate) {
 
         StringBuffer log = new StringBuffer();
 
         // User settings are part of the state
-        Map<String, Object> completeState = new Hashtable<>();
-        completeState.putAll(fetchState());
-        completeState.putAll(stateUpdate);     
-        Map<String, Object> newState = stateEvaluator.evaluateState(completeState, log);
+        TartanState completeState = new TartanState();
+        completeState.mergeState(fetchState());
+        completeState.mergeState(stateUpdate);
+        TartanState newState = stateEvaluator.evaluateState(completeState, log);
         logMessages.add(log.toString());
         synchronized(connMgr) {
             connMgr.setState(newState);
         }
-        this.lastState.putAll(newState);
+        this.lastState.mergeState(newState);
     }
 
-    public Map<String, Object> getCurrentState() {
+    public TartanState getCurrentState() {
         return fetchState();
     }
 
     /**
      * Fetch the complete state from the house
-     * @return
+     * @return TartanState of the house's complete state
      */
-    private Map<String, Object> fetchState() {
+    private TartanState fetchState() {
         // Map<String, Object> state = null;
         synchronized (connMgr) {
             if (connMgr.isConnected() == false) {
@@ -182,10 +183,10 @@ public class IoTControlManager {
         }
 
         // The away timer is controlled here
-        lastState.put(IoTValues.AWAY_TIMER, false);
+        lastState.setAwayTimerState(false);
 
-        // The state includes the user settings 
-        lastState.putAll(userSettings);
+        // The state includes the user settings
+        lastState.mergeState(userSettings);
         // lastState.putAll(state);
         return lastState;
     }
@@ -202,26 +203,26 @@ public class IoTControlManager {
                 Integer missedUpdates = 0;
                 while (true) {
 
-                    Map<String, Object> currentState = fetchState();
+                    TartanState currentState = fetchState();
                     if (currentState != null) {
 
                         StringBuffer log = new StringBuffer();
-                        Map<String, Object> newState = stateEvaluator.evaluateState(currentState, log);
+                        TartanState newState = stateEvaluator.evaluateState(currentState, log);
                         logMessages.add(log.toString());
                         
                         // save this state 
-                        IoTControlManager.this.lastState.putAll(newState);
+                        lastState.mergeState(newState);
 
                         synchronized (connMgr) {
                             connMgr.setState(newState);
                         }
                         
                         // Must handle away timer here
-                        if (true == (Boolean) newState.getOrDefault(IoTValues.AWAY_TIMER, false)) {
+                        if (newState.getAwayTimerState() != null && newState.getAwayTimerState()){
                             startAwayTimer();
+                        } else {
+                            missedUpdates = 0;
                         }
-                        else 
-                        missedUpdates = 0;
 
                     } else {
                         missedUpdates++;
@@ -307,7 +308,7 @@ public class IoTControlManager {
     private void startAwayTimer() {
         Timer t = new Timer();
 
-        Integer awayTimeout = (Integer) userSettings.get(IoTValues.ALARM_DELAY);
+        Integer awayTimeout = userSettings.getAlarmDelay();
 
         t.schedule(new TimerTask() {
 
@@ -318,15 +319,15 @@ public class IoTControlManager {
             public void run() {
 
                 // signal that the away timer has fired
-                IoTControlManager.this.lastState.put(IoTValues.AWAY_TIMER, true);
+                lastState.setAwayTimerState(true);
 
                 synchronized (connMgr) {
 
                     StringBuffer log = new StringBuffer();
-                    Map<String, Object> newState = stateEvaluator.evaluateState(IoTControlManager.this.lastState, log);
+                    TartanState newState = stateEvaluator.evaluateState(lastState, log);
                     logMessages.add(log.toString());
                     connMgr.setState(newState);
-                    IoTControlManager.this.lastState.putAll(newState);
+                    lastState.mergeState(newState);
                 }
             }
         }, awayTimeout * 1000);
