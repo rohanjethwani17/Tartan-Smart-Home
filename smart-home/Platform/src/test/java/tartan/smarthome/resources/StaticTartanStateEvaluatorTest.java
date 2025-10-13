@@ -10,9 +10,9 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 class StaticTartanStateEvaluatorTest {
-    private StaticTartanStateEvaluator evaluator;
-    private TartanState state;
-    private StringBuffer log;
+    StaticTartanStateEvaluator evaluator;
+    TartanState state;
+    StringBuffer log;
 
     public static TartanState createPlausibleTestState() {
         TartanState output = new TartanState();
@@ -182,17 +182,40 @@ class StaticTartanStateEvaluatorTest {
     }
 }
 
-class StaticTartanStateEvaluatorUC13EquivalenceClassesTest {
-    private StaticTartanStateEvaluator evaluator;
-    private TartanState state;
-    private StringBuffer log;
-
-    @BeforeEach
-    public void setUp() {
-        evaluator = new StaticTartanStateEvaluator();
-        log = new StringBuffer();
-        state = StaticTartanStateEvaluatorTest.createPlausibleTestState();
+class StaticTartanStateEvaluatorUC12EquivalenceClassesTest extends StaticTartanStateEvaluatorTest {
+    @Test
+    public void test_hotter_target() {
+        state.setTempReading(60);
+        state.setTargetTempSetting(61);
+        // Hotter temperature target means the AC should be off, and the heater should be on
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertFalse(evaluatedState.getChillerOnState());
+        assertTrue(evaluatedState.getHeaterOnState());
     }
+
+    @Test
+    public void test_colder_target() {
+        state.setTempReading(60);
+        state.setTargetTempSetting(59);
+        // Colder temperature target means AC should be on, heater should be off
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertTrue(evaluatedState.getChillerOnState());
+        assertFalse(evaluatedState.getHeaterOnState());
+    }
+
+    @Test
+    public void test_manual_heater_chiller_setting() {
+        // manually enable the heater and chiller, make sure they fix themselves post-evaluation
+        state.setChillerOnState(true);
+        state.setHeaterOnState(true);
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertFalse(
+                evaluatedState.getChillerOnState() && evaluatedState.getHeaterOnState()
+        );
+    }
+}
+
+class StaticTartanStateEvaluatorUC13EquivalenceClassesTest extends StaticTartanStateEvaluatorTest {
 
     @Test
     public void test_AC_off_DH_off_valid() {

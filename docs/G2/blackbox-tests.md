@@ -89,7 +89,7 @@
   - testing should verify that a new user has the password that was set for them at least
   - ??
 
-## UC12
+## UC12 ✅
 - The IoT Controller shall decide whether the house should heat or cool the house.
   The system shall prevent the heater and air conditioner from running at the same
   time.
@@ -98,7 +98,7 @@
   - Set temp colder than it currently is, ensure AC turns on, heater is off
   - Attempt different ways of manually setting AC and heater on simultaneously, make sure they don't work
 
-## UC13
+## UC13 ✅
 - The IoT Controller shall allow the user to turn on and turn off the dehumidifier. The
   dehumidifier can only be activated with the air conditioner.
 - Testing Strategy (equivalence class?)

@@ -24,10 +24,6 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
      */
     @Override
     public TartanState evaluateState(TartanState inState, StringBuffer log) {
-
-        System.out.println("Evaluating new state statically");
-
-
         // Enforce target temperature bounds (R16)
         validateTargetTempSetting(inState, log);
 
