@@ -5,9 +5,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+
 import java.util.List;
 
-class StaticTartanStateEvaluatorTest {
+class StaticTartanStateEvaluatorTestBase {
     StaticTartanStateEvaluator evaluator;
     TartanState state;
     StringBuffer log;
@@ -38,6 +39,9 @@ class StaticTartanStateEvaluatorTest {
         log = new StringBuffer();
         state = createPlausibleTestState();
     }
+}
+
+class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase {
 
     /**
      * R1: If the house is vacant, then the light cannot be turned on.
@@ -661,7 +665,7 @@ class StaticTartanStateEvaluatorTest {
     }
 }
 
-class StaticTartanStateEvaluatorUC12EquivalenceClassesTest extends StaticTartanStateEvaluatorTest {
+class StaticTartanStateEvaluatorUC12EquivalenceClassesTest extends StaticTartanStateEvaluatorTestBase {
     @Test
     public void test_hotter_target() {
         state.setTempReading(60);
