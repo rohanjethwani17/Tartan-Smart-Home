@@ -1,9 +1,6 @@
 package tartan.smarthome.resources;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 
@@ -30,7 +27,7 @@ class StaticTartanStateEvaluatorTestBase {
         output.setAwayTimerState(false);
         output.setAlarmActiveState(false);
 
-        output.setDoorLockState(false);
+        output.setDoorLockedState(false);
         output.setPasscodeRequiredForLock(false);
         output.setDoorLockRequest(false);
 

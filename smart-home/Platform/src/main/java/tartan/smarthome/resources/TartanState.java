@@ -43,7 +43,7 @@ public class TartanState {
     @Nullable
     String givenPassCode = "";
     @Nullable
-    Boolean doorLockState = null; // the state of the door lock (true if locked, false if unlocked)
+    Boolean doorLockedState = false; // the state of the door lock (true if locked, false if unlocked)
     @Nullable
     Boolean passcodeRequiredForLock = null; // whether passcode is required for lock/unlock
     @Nullable
@@ -56,7 +56,9 @@ public class TartanState {
     List<String> detectedDevices = null;
 
     // IntruderDefense Controller
+    @Nullable
     Boolean intruderDetected = null;
+    @Nullable
     Boolean allClear = null;
 
     /**
@@ -100,7 +102,7 @@ public class TartanState {
             } else if (key.equals(IoTValues.ALARM_ACTIVE)) {
                 this.alarmActiveState = (Boolean) stateMap.get(key);
             } else if (key.equals("doorLockState")) {
-            this.doorLockState = (Boolean)  stateMap.get("doorLockState");
+                this.doorLockedState = (Boolean)  stateMap.get("doorLockState");
             }
             else if (key.equals("passcodeRequiredForLock")) {
                 this.passcodeRequiredForLock = (Boolean) stateMap.get("passcodeRequiredForLock");
@@ -192,8 +194,8 @@ public class TartanState {
         if (givenPassCode != null) {
             output.put(IoTValues.GIVEN_PASSCODE, givenPassCode);
         }
-        if (doorLockState != null) {
-            output.put("doorLockState", doorLockState);
+        if (doorLockedState != null) {
+            output.put("doorLockState", doorLockedState);
         }
         if (passcodeRequiredForLock != null) {
             output.put("passcodeRequiredForLock", passcodeRequiredForLock);
@@ -395,15 +397,6 @@ public class TartanState {
     }
 
     @Nullable
-    public Boolean getDoorLockState() {
-        return doorLockState;
-    }
-
-    public void setDoorLockState(@Nullable Boolean doorLockState) {
-        this.doorLockState = doorLockState;
-    }
-
-    @Nullable
     public Boolean getPasscodeRequiredForLock() {
         return passcodeRequiredForLock;
     }
@@ -448,6 +441,14 @@ public class TartanState {
         this.detectedDevices = detectedDevices;
     }
 
+    public void setDoorLockedState(@Nullable Boolean b) {
+        this.doorLockedState = b;
+    }
+
+    public Boolean getDoorLockedState() {
+        return this.doorLockedState;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
@@ -468,7 +469,7 @@ public class TartanState {
                 Objects.equals(getAlarmPassCode(), that.getAlarmPassCode()) &&
                 Objects.equals(getHvacSetting(), that.getHvacSetting()) &&
                 Objects.equals(getGivenPassCode(), that.getGivenPassCode()) &&
-                Objects.equals(getDoorLockState(), that.getDoorLockState()) &&
+                Objects.equals(getDoorLockedState(), that.getDoorLockedState()) &&
                 Objects.equals(getPasscodeRequiredForLock(), that.getPasscodeRequiredForLock()) &&
                 Objects.equals(getDoorLockRequest(), that.getDoorLockRequest()) &&
                 Objects.equals(getKeylessEntryEnabled(), that.getKeylessEntryEnabled()) &&
@@ -494,7 +495,7 @@ public class TartanState {
                 getAlarmPassCode(),
                 getHvacSetting(),
                 getGivenPassCode(),
-                getDoorLockState(),
+                getDoorLockedState(),
                 getPasscodeRequiredForLock(),
                 getDoorLockRequest(),
                 getKeylessEntryEnabled(),
@@ -523,7 +524,7 @@ public class TartanState {
                 ", alarmPassCode='" + alarmPassCode + '\'' +
                 ", hvacSetting='" + hvacSetting + '\'' +
                 ", givenPassCode='" + givenPassCode + '\'' +
-                ", doorLockState=" + doorLockState +
+                ", doorLockState=" + doorLockedState +
                 ", passcodeRequiredForLock=" + passcodeRequiredForLock +
                 ", doorLockRequest=" + doorLockRequest +
                 ", keylessEntryEnabled=" + keylessEntryEnabled +

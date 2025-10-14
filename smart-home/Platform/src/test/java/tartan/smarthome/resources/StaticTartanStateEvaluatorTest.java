@@ -1,10 +1,16 @@
 package tartan.smarthome.resources;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import tartan.smarthome.resources.iotcontroller.NightlockController;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.time.LocalTime;
 import java.util.List;
 
 
@@ -80,7 +86,7 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         assertFalse(heaterState && humidifierState, "Heater and humidifier cannot be on at the same time.");
     }
 
-     /**
+    /**
      * R13: The correct passcode is required to disable the alarm.
      * Hard
      */
@@ -120,7 +126,7 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
     /**
      * R1 BLACKBOX TEST: Equivalence Class - Occupied house with light off and alarm enabled
      * Strategy: Equivalence partitioning with rule interaction consideration
-     * 
+     *
      * Test that when house is occupied with alarm enabled, light can remain off.
      * Note: We enable the alarm to prevent R8 (auto-light-on) from interfering.
      * This validates that R1 doesn't incorrectly prevent lights from being off when occupied.
@@ -135,16 +141,16 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
 
         // Verify: light should remain off (alarm enabled prevents auto-on from R8)
-        assertFalse(evaluatedState.getLightState(), 
+        assertFalse(evaluatedState.getLightState(),
                 "Light should be allowed to stay off when house is occupied with alarm enabled.");
-        assertTrue(evaluatedState.getProximityState(), 
+        assertTrue(evaluatedState.getProximityState(),
                 "House should remain occupied.");
     }
 
     /**
      * R1 BLACKBOX TEST: Equivalence Class - Occupied house with light on
      * Strategy: Equivalence partitioning
-     * 
+     *
      * Test that when house is occupied, light can be on (valid state).
      * This ensures the rule only prevents lights when vacant, not when occupied.
      */
@@ -157,16 +163,16 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
 
         // Verify: light should remain on
-        assertTrue(evaluatedState.getLightState(), 
+        assertTrue(evaluatedState.getLightState(),
                 "Light should be allowed to be on when house is occupied.");
-        assertTrue(evaluatedState.getProximityState(), 
+        assertTrue(evaluatedState.getProximityState(),
                 "House should remain occupied.");
     }
 
     /**
      * R13 BLACKBOX TEST: Empty passcode when alarm is sounding
      * Strategy: Equivalence partitioning - testing invalid passcode input
-     * 
+     *
      * Test that an empty string passcode is rejected when trying to disable
      * a sounding alarm. This is different from null and tests string validation.
      */
@@ -177,7 +183,7 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         state.setAlarmState(true);
         state.setAlarmActiveState(true);
         state.setAlarmPassCode("correct123");
-        
+
         // User attempts to disable with empty string passcode
         state.setGivenPassCode("");
         state.setAlarmState(false);  // requesting disable
@@ -185,16 +191,16 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
 
         // Verify: alarm should remain enabled due to incorrect passcode
-        assertTrue(evaluatedState.getAlarmState(), 
+        assertTrue(evaluatedState.getAlarmState(),
                 "Alarm should remain enabled when empty passcode is provided.");
-        assertTrue(evaluatedState.getAlarmActiveState(), 
+        assertTrue(evaluatedState.getAlarmActiveState(),
                 "Alarm should continue sounding with empty passcode.");
     }
 
     /**
      * R13 BLACKBOX TEST: Null passcode when alarm is sounding
      * Strategy: Equivalence partitioning - testing null input handling
-     * 
+     *
      * Test that a null passcode is rejected when trying to disable
      * a sounding alarm. This tests edge case of missing input.
      */
@@ -205,7 +211,7 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         state.setAlarmState(true);
         state.setAlarmActiveState(true);
         state.setAlarmPassCode("correct123");
-        
+
         // User attempts to disable with null passcode
         state.setGivenPassCode(null);
         state.setAlarmState(false);  // requesting disable
@@ -213,16 +219,16 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
 
         // Verify: alarm should remain enabled due to null passcode
-        assertTrue(evaluatedState.getAlarmState(), 
+        assertTrue(evaluatedState.getAlarmState(),
                 "Alarm should remain enabled when null passcode is provided.");
-        assertTrue(evaluatedState.getAlarmActiveState(), 
+        assertTrue(evaluatedState.getAlarmActiveState(),
                 "Alarm should continue sounding with null passcode.");
     }
 
     /**
      * R16 BLACKBOX TEST: Extreme lower boundary - very negative temperature
      * Strategy: Boundary Value Analysis (extreme values)
-     * 
+     *
      * Test that extremely low temperature values are clamped to minimum (50°F).
      * This ensures the system handles edge cases beyond typical input ranges.
      */
@@ -241,7 +247,7 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
     /**
      * R16 BLACKBOX TEST: Extreme upper boundary - very high temperature
      * Strategy: Boundary Value Analysis (extreme values)
-     * 
+     *
      * Test that extremely high temperature values are clamped to maximum (80°F).
      * This ensures the system handles edge cases beyond typical input ranges.
      */
@@ -260,7 +266,7 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
     /**
      * R16 BLACKBOX TEST: Just below lower boundary
      * Strategy: Boundary Value Analysis (boundary - 1)
-     * 
+     *
      * Test temperature at 49°F, which is one degree below the minimum.
      * Classic BVA test for the lower boundary.
      */
@@ -279,7 +285,7 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
     /**
      * R16 BLACKBOX TEST: Just above upper boundary
      * Strategy: Boundary Value Analysis (boundary + 1)
-     * 
+     *
      * Test temperature at 81°F, which is one degree above the maximum.
      * Classic BVA test for the upper boundary.
      */
@@ -309,7 +315,7 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
                     "Target temperature 50°F should be accepted (lower bound).");
         }
 
-        // Reject below min (49°F): clamp to 50°F 
+        // Reject below min (49°F): clamp to 50°F
         {
             state.setTargetTempSetting(49);
             TartanState evaluatedState = evaluator.evaluateState(state, log);
@@ -325,7 +331,7 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
                     "Target temperature 80°F should be accepted (upper bound).");
         }
 
-        // Reject above max (81°F): clamp to 80°F 
+        // Reject above max (81°F): clamp to 80°F
         {
             state.setTargetTempSetting(81);
             TartanState evaluatedState = evaluator.evaluateState(state, log);
@@ -341,7 +347,7 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
     /**
      * R3 BLACKBOX TEST: Occupied house with door open
      * Strategy: Equivalence partitioning - valid state
-     * 
+     *
      * Test that door can remain open when house is occupied.
      */
     @Test
@@ -353,16 +359,16 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
 
         // Verify: door should remain open when occupied
-        assertTrue(evaluatedState.getDoorState(), 
+        assertTrue(evaluatedState.getDoorState(),
                 "Door should be allowed to stay open when house is occupied.");
-        assertTrue(evaluatedState.getProximityState(), 
+        assertTrue(evaluatedState.getProximityState(),
                 "House should remain occupied.");
     }
 
     /**
      * R3 BLACKBOX TEST: Vacant house with door closed
      * Strategy: Equivalence partitioning - valid state
-     * 
+     *
      * Test that door remains closed when house is vacant and door already closed.
      */
     @Test
@@ -374,9 +380,9 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
 
         // Verify: door should remain closed
-        assertFalse(evaluatedState.getDoorState(), 
+        assertFalse(evaluatedState.getDoorState(),
                 "Door should remain closed when house is vacant.");
-        assertFalse(evaluatedState.getProximityState(), 
+        assertFalse(evaluatedState.getProximityState(),
                 "House should remain vacant.");
     }
 
@@ -387,7 +393,7 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
     /**
      * R8 BLACKBOX TEST: House already occupied, alarm disabled, light off
      * Strategy: Equivalence partitioning
-     * 
+     *
      * Test that light turns on when house is occupied and alarm is disabled,
      * even if the house was already occupied.
      */
@@ -401,14 +407,14 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
 
         // Verify: light should turn on
-        assertTrue(evaluatedState.getLightState(), 
+        assertTrue(evaluatedState.getLightState(),
                 "Light should turn on when occupied with alarm disabled.");
     }
 
     /**
      * R8 BLACKBOX TEST: Light already on when becoming occupied
      * Strategy: Boundary case testing
-     * 
+     *
      * Test that light remains on when house becomes occupied with light already on.
      */
     @Test
@@ -421,14 +427,14 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
 
         // Verify: light should remain on
-        assertTrue(evaluatedState.getLightState(), 
+        assertTrue(evaluatedState.getLightState(),
                 "Light should remain on when already on with house occupied.");
     }
 
     /**
      * R8 BLACKBOX TEST: Occupied with alarm enabled - no auto light
      * Strategy: Rule interaction testing
-     * 
+     *
      * Test that light does NOT auto-turn-on when occupied but alarm is enabled
      * (potential intruder scenario).
      */
@@ -442,14 +448,14 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
 
         // Verify: light should NOT turn on (alarm enabled = potential intruder)
-        assertFalse(evaluatedState.getLightState(), 
+        assertFalse(evaluatedState.getLightState(),
                 "Light should not turn on when alarm is enabled (potential intruder).");
     }
 
     /**
      * R8 BLACKBOX TEST: Transition from vacant to occupied
      * Strategy: State transition testing
-     * 
+     *
      * Test the specific scenario of transitioning from vacant to occupied.
      */
     @Test
@@ -462,9 +468,9 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
 
         // Verify: light turns on for legitimate user
-        assertTrue(evaluatedState.getLightState(), 
+        assertTrue(evaluatedState.getLightState(),
                 "Light should turn on when house becomes occupied with alarm disabled.");
-        assertTrue(evaluatedState.getProximityState(), 
+        assertTrue(evaluatedState.getProximityState(),
                 "House should be occupied.");
     }
 
@@ -475,7 +481,7 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
     /**
      * R10 BLACKBOX TEST: Heater on, dehumidifier off
      * Strategy: Equivalence partitioning - valid state
-     * 
+     *
      * Test that heater and dehumidifier off together is a valid state.
      */
     @Test
@@ -488,16 +494,16 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
 
         // Verify: heater on, dehumidifier stays off
-        assertTrue(evaluatedState.getHeaterOnState(), 
+        assertTrue(evaluatedState.getHeaterOnState(),
                 "Heater should be on when temp is below target.");
-        assertFalse(evaluatedState.getHumidifierState(), 
+        assertFalse(evaluatedState.getHumidifierState(),
                 "Dehumidifier should remain off.");
     }
 
     /**
      * R10 BLACKBOX TEST: Neither heater nor dehumidifier needed
      * Strategy: Equivalence partitioning - valid state
-     * 
+     *
      * Test that both can be off when neither is needed.
      */
     @Test
@@ -511,16 +517,16 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
 
         // Verify: both should be off
-        assertFalse(evaluatedState.getHeaterOnState(), 
+        assertFalse(evaluatedState.getHeaterOnState(),
                 "Heater should be off when temp equals target.");
-        assertFalse(evaluatedState.getHumidifierState(), 
+        assertFalse(evaluatedState.getHumidifierState(),
                 "Dehumidifier should be off.");
     }
 
     /**
      * R10 BLACKBOX TEST: Temperature changes triggering heater
      * Strategy: Boundary value analysis
-     * 
+     *
      * Test state change when temperature drops and heater activates.
      */
     @Test
@@ -533,103 +539,140 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
 
         // Verify: heater activates, dehumidifier stays off
-        assertTrue(evaluatedState.getHeaterOnState(), 
+        assertTrue(evaluatedState.getHeaterOnState(),
                 "Heater should activate when temp drops below target.");
-        assertFalse(evaluatedState.getHumidifierState(), 
+        assertFalse(evaluatedState.getHumidifierState(),
                 "Dehumidifier should remain off when heater is on.");
     }
 
-    
 
-    
-    // Keyless operation tests
+
+
+    // Electronic operation tests
     @Test
     public void testLockWithPasscodeRequiredIncorrectPasscode() {
-           state.setDoorLockState(false); // currently unlocked
-           state.setPasscodeRequiredForLock(true);
-           state.setGivenPassCode("wrong");
-           state.setAlarmPassCode("passcode");
-           state.setDoorLockRequest(true); // request lock
+        state.setDoorLockedState(false); // currently unlocked
+        state.setPasscodeRequiredForLock(true);
+        state.setGivenPassCode("wrong");
+        state.setAlarmPassCode("passcode");
+        state.setDoorLockRequest(true); // request lock
 
-           TartanState evaluatedState = evaluator.evaluateState(state, log);
-           assertFalse(evaluatedState.getDoorLockState(), "Door should remain unlocked with incorrect passcode.");
-           assertTrue(log.toString().contains("invalid passcode"), "Log should contain rejection message.");
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertFalse(evaluatedState.getDoorLockedState(), "Door should remain unlocked with incorrect passcode.");
+        assertTrue(log.toString().contains("invalid passcode"), "Log should contain rejection message.");
     }
 
     @Test
     public void testLockWithPasscodeRequiredCorrectPasscode() {
-           state.setDoorLockState(false); // currently unlocked
-           state.setPasscodeRequiredForLock(true);
-           state.setGivenPassCode("passcode");
-           state.setAlarmPassCode("passcode");
-           state.setDoorLockRequest(true); // request lock
+        state.setDoorLockedState(false); // currently unlocked
+        state.setPasscodeRequiredForLock(true);
+        state.setGivenPassCode("passcode");
+        state.setAlarmPassCode("passcode");
+        state.setDoorLockRequest(true); // request lock
 
-           TartanState evaluatedState = evaluator.evaluateState(state, log);
-           assertTrue(evaluatedState.getDoorLockState(), "Door should be locked with correct passcode.");
-           assertTrue(log.toString().contains("locked"), "Log should contain success message.");
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertTrue(evaluatedState.getDoorLockedState(), "Door should be locked with correct passcode.");
+        assertTrue(log.toString().contains("locked"), "Log should contain success message.");
     }
 
     @Test
     public void testLockWithNoPasscodeRequired() {
-           state.setDoorLockState(false); // currently unlocked
-           state.setPasscodeRequiredForLock(false);
-           state.setDoorLockRequest(true); // request lock
+        state.setDoorLockedState(false); // currently unlocked
+        state.setPasscodeRequiredForLock(false);
+        state.setDoorLockRequest(true); // request lock
 
-           TartanState evaluatedState = evaluator.evaluateState(state, log);
-           assertTrue(evaluatedState.getDoorLockState(), "Door should be locked when no passcode required.");
-           assertTrue(log.toString().contains("locked"), "Log should contain success message.");
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertTrue(evaluatedState.getDoorLockedState(), "Door should be locked when no passcode required.");
+        assertTrue(log.toString().contains("locked"), "Log should contain success message.");
     }
 
     @Test
     public void testUnlockWithPasscodeRequiredIncorrectPasscode() {
-           state.setDoorLockState(true); // currently locked
-           state.setPasscodeRequiredForLock(true);
-           state.setGivenPassCode("wrong");
-           state.setAlarmPassCode("passcode");
-           state.setDoorLockRequest(false); // request unlock
+        state.setDoorLockedState(true); // currently locked
+        state.setPasscodeRequiredForLock(true);
+        state.setGivenPassCode("wrong");
+        state.setAlarmPassCode("passcode");
+        state.setDoorLockRequest(false); // request unlock
 
-           TartanState evaluatedState = evaluator.evaluateState(state, log);
-           assertTrue(evaluatedState.getDoorLockState(), "Door should remain locked with incorrect passcode.");
-           assertTrue(log.toString().contains("invalid passcode"), "Log should contain rejection message.");
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertTrue(evaluatedState.getDoorLockedState(), "Door should remain locked with incorrect passcode.");
+        assertTrue(log.toString().contains("invalid passcode"), "Log should contain rejection message.");
     }
 
     @Test
     public void testUnlockWithPasscodeRequiredCorrectPasscode() {
-           state.setDoorLockState(true); // currently locked
-           state.setPasscodeRequiredForLock(true);
-           state.setGivenPassCode("passcode");
-           state.setAlarmPassCode("passcode");
-           state.setDoorLockRequest(false); // request unlock
+        state.setDoorLockedState(true); // currently locked
+        state.setPasscodeRequiredForLock(true);
+        state.setGivenPassCode("passcode");
+        state.setAlarmPassCode("passcode");
+        state.setDoorLockRequest(false); // request unlock
 
-           TartanState evaluatedState = evaluator.evaluateState(state, log);
-           assertFalse(evaluatedState.getDoorLockState(), "Door should be unlocked with correct passcode.");
-           assertTrue(log.toString().contains("unlocked"), "Log should contain success message.");
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertFalse(evaluatedState.getDoorLockedState(), "Door should be unlocked with correct passcode.");
+        assertTrue(log.toString().contains("unlocked"), "Log should contain success message.");
     }
 
     @Test
     public void testUnlockWithNoPasscodeRequired() {
-           state.setDoorLockState(true); // currently locked
-           state.setPasscodeRequiredForLock(false);
-           state.setDoorLockRequest(false); // request unlock
+        state.setDoorLockedState(true); // currently locked
+        state.setPasscodeRequiredForLock(false);
+        state.setDoorLockRequest(false); // request unlock
 
-           TartanState evaluatedState = evaluator.evaluateState(state, log);
-           assertFalse(evaluatedState.getDoorLockState(), "Door should be unlocked when no passcode required.");
-           assertTrue(log.toString().contains("unlocked"), "Log should contain success message.");
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertFalse(evaluatedState.getDoorLockedState(), "Door should be unlocked when no passcode required.");
+        assertTrue(log.toString().contains("unlocked"), "Log should contain success message.");
     }
 
     // Keyless Entry
     @Test
     public void testKeylessEntryAuthorizedUnlock() {
         state.setKeylessEntryEnabled(true);
-        state.setDoorLockState(true); // door is locked
-        state.setKnownDevices(List.of("known_phone1", 
-        "known_phone2", "known_phone3"));
+        state.setDoorLockedState(true); // door is locked
+        state.setKnownDevices(List.of("known_phone1",
+                "known_phone2", "known_phone3"));
         state.setDetectedDevices(List.of("known_phone2"));
         // No manual unlock request
 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
-        assertFalse(evaluatedState.getDoorLockState(), "Door should be unlocked when authorized resident is present.");
+        assertFalse(evaluatedState.getDoorLockedState(), "Door should be unlocked when authorized resident is present.");
         assertTrue(log.toString().contains("Authorized resident detected, unlocking door"), "Log should contain automatica door unlock message");
+    }
+
+    /**
+     * Intruder Defense Test:
+     * -When in-home sensors detect the possible presence of an intruder, lock the door and send "possible intruder detected" messages to the access panels.
+     * -Keep the door locked until the sensors provide an "all clear" signal, at which time "all clear" messages are sent to the access panels.
+     */
+    @Test
+    public void test_intruderBreakin() {
+        state.setProximityState(false); // user is away
+        state.setDoorState(true);       // door is open
+        state.setDoorLockedState(false);    // doors not locked
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+
+        assertTrue(Boolean.TRUE.equals(evaluatedState.doorLockedState));
+        assertTrue(log.toString().contains("possible intruder detected"));
+    }
+
+    @Test
+    public void test_allClearLogs(){
+        state.setProximityState(false); // user is away
+        state.setDoorState(true);       // door is opened
+        state.setDoorLockedState(false);    // doors not locked
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+
+        // Sanity: intruder has engaged lock
+        assertTrue(Boolean.TRUE.equals(evaluatedState.doorLockedState));
+
+        // 2) Clear the trigger and raise ALL CLEAR
+        evaluatedState.setDoorState(false);  // CLOSED
+        evaluatedState.allClear = true;      // signal all clear
+        evaluator.evaluateState(evaluatedState, log);
+
+        // Must log "Door unlocked after all clear"
+        assertTrue(log.toString().contains("Door unlocked after all clear"));
     }
 }
 
@@ -781,5 +824,142 @@ class StaticTartanStateEvaluatorUC13EquivalenceClassesTest extends StaticTartanS
         assertFalse(
                 !chillerState && humidifierState
         );
+    }
+
+    @Nested
+    class NightlockControllerTest {
+
+        private TartanState state;
+        private NightlockController nightlock;
+        private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        private final PrintStream originalOut = System.out;
+
+        @BeforeEach
+        public void setUp() {
+            state = new TartanState();
+            nightlock = new NightlockController(state);
+            System.setOut(new PrintStream(outContent));
+        }
+
+        @AfterEach
+        public void tearDown() {
+            System.setOut(originalOut);
+        }
+
+        // ---------- BASIC FUNCTIONALITY TESTS ----------
+
+        @Test
+        public void testNightLockActivatesAtNight() {
+            nightlock.enableNightLock(LocalTime.of(22, 0), LocalTime.of(6, 0));
+            boolean active = nightlock.checkAndApplyNightLock(LocalTime.of(23, 0));
+            assertTrue(active, "Nightlock should activate during night.");
+            assertTrue(state.getDoorLockedState(), "Door should be locked.");
+            assertTrue(outContent.toString().contains("Night Lock activated"), "Activation message expected.");
+        }
+
+
+        @Test
+        public void testNightLockWrapsPastMidnight() {
+            nightlock.enableNightLock(LocalTime.of(22, 0), LocalTime.of(6, 0));
+            boolean active = nightlock.checkAndApplyNightLock(LocalTime.of(2, 0));
+            assertTrue(active, "Nightlock should activate past midnight.");
+            assertTrue(state.getDoorLockedState());
+        }
+
+        // ---------- BOUNDARY VALUE TESTS ----------
+
+        @Test
+        public void testNightLockAtExactStartTimeInclusive() {
+            nightlock.enableNightLock(LocalTime.of(22, 0), LocalTime.of(6, 0));
+            boolean active = nightlock.checkAndApplyNightLock(LocalTime.of(22, 0));
+            assertTrue(active, "At exact start time, nightlock should activate.");
+            assertTrue(state.getDoorLockedState());
+        }
+
+        @Test
+        public void testNightLockAtExactEndTimeExclusive() {
+            nightlock.enableNightLock(LocalTime.of(22, 0), LocalTime.of(6, 0));
+            boolean active = nightlock.checkAndApplyNightLock(LocalTime.of(6, 0));
+            assertFalse(active, "At exact end time, nightlock should deactivate.");
+            assertFalse(state.getDoorLockedState());
+        }
+
+        @Test
+        public void testNightLockAtMidnight() {
+            nightlock.enableNightLock(LocalTime.of(22, 0), LocalTime.of(6, 0));
+            boolean active = nightlock.checkAndApplyNightLock(LocalTime.MIDNIGHT);
+            assertTrue(active, "Midnight should be within nightlock range.");
+            assertTrue(state.getDoorLockedState());
+        }
+
+        // ---------- MANUAL ACTIVATION / DEACTIVATION TESTS ----------
+
+        @Test
+        public void testActivateNightLockWhenAlreadyLocked() {
+            state.setDoorLockedState(true);
+            nightlock.activateNightLock();
+            assertTrue(outContent.toString().contains("already locked"), "Should detect already locked state.");
+        }
+
+        @Test
+        public void testDeactivateNightLockWhenAlreadyUnlocked() {
+            state.setDoorLockedState(false);
+            nightlock.deactivateNightLock();
+            assertTrue(outContent.toString().contains("already unlocked"), "Should detect already unlocked state.");
+        }
+
+        @Test
+        public void testActivateAndDeactivateManually() {
+            nightlock.activateNightLock();
+            assertTrue(state.getDoorLockedState());
+            nightlock.deactivateNightLock();
+            assertFalse(state.getDoorLockedState());
+        }
+
+        // ---------- RELock BEHAVIOR ----------
+
+        @Test
+        public void testRelockIfUnlockedDuringNight() {
+            nightlock.enableNightLock(LocalTime.of(22, 0), LocalTime.of(6, 0));
+            nightlock.checkAndApplyNightLock(LocalTime.of(23, 0));
+            assertTrue(state.getDoorLockedState());
+
+            // simulate manual unlock during night
+            state.setDoorLockedState(false);
+            nightlock.checkAndApplyNightLock(LocalTime.of(23, 30));
+            assertTrue(state.getDoorLockedState(), "Door should relock automatically at night.");
+        }
+
+        // ---------- EDGE CONFIGURATION TESTS ----------
+
+        @Test
+        public void testNightStartAndEndSameTimeMeansAlwaysUnlocked() {
+            nightlock.enableNightLock(LocalTime.of(10, 0), LocalTime.of(10, 0));
+            boolean active = nightlock.checkAndApplyNightLock(LocalTime.of(10, 0));
+            assertFalse(active, "If start == end, assume nightlock never activates.");
+            assertFalse(state.getDoorLockedState());
+        }
+
+        @Test
+        public void testChangeConfigurationTakesEffect() {
+            nightlock.enableNightLock(LocalTime.of(20, 0), LocalTime.of(4, 0));
+            boolean activeBefore = nightlock.checkAndApplyNightLock(LocalTime.of(19, 0));
+            assertFalse(activeBefore);
+
+            nightlock.enableNightLock(LocalTime.of(18, 0), LocalTime.of(4, 0));
+            boolean activeAfter = nightlock.checkAndApplyNightLock(LocalTime.of(19, 0));
+            assertTrue(activeAfter, "Changing config should update nightlock times.");
+        }
+
+        // ---------- STATE QUERIES ----------
+
+        @Test
+        public void testIsDoorLockedReflectsState() {
+            state.setDoorLockedState(true);
+            assertTrue(nightlock.isDoorLocked());
+            state.setDoorLockedState(false);
+            assertFalse(nightlock.isDoorLocked());
+        }
+
     }
 }

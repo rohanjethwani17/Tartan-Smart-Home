@@ -53,7 +53,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
             validateAlarmDisablingAttempt(inState, log);
         }
 
-        if (!inState.alarmState) {
+        if (Boolean.FALSE.equals(inState.alarmState)) {
             log.append(formatLogEntry("Alarm disabled"));
             inState.alarmActiveState = false;
         }
@@ -341,7 +341,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
             
 
             if (passcodeValid) {
-                intermediateState.setDoorLockState(requestLock);
+                intermediateState.setDoorLockedState(requestLock);
                 if (requestLock) {
                     log.append(formatLogEntry("Door locked via access panel."));
                 } else {
@@ -370,7 +370,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
 
 
         if (foundMatch) {
-            intermediateState.setDoorLockState(false);
+            intermediateState.setDoorLockedState(false);
             log.append(formatLogEntry("Authorized resident detected, unlocking door"));
         }
     }
@@ -396,7 +396,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
     private void processIntruder(TartanState intermediateState, StringBuffer log) {
                 // while intruder detected, keep doors locked
         if (Boolean.TRUE.equals(intermediateState.intruderDetected)) {
-            intermediateState.doorLockState = true;
+            intermediateState.doorLockedState = true;
         }
 
         // handle all clear: unlock door and reset flags
@@ -404,7 +404,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
             notifyPanel(log, "all clear");
             intermediateState.intruderDetected = false;
             intermediateState.allClear = false;       // reset the signal
-            intermediateState.doorLockState = false;  // unlock door after all clear
+            intermediateState.doorLockedState = false;  // unlock door after all clear
             log.append(formatLogEntry("Door unlocked after all clear"));
         }
     }
