@@ -40,7 +40,7 @@ class StaticTartanStateEvaluatorTestBase {
     }
 }
 
-class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase{
+class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase {
 
     /**
      * R1: If the house is vacant, then the light cannot be turned on.
