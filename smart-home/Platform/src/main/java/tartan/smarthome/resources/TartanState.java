@@ -24,6 +24,9 @@ public class TartanState {
     String alarmPassCode = null;
     String hvacSetting = null; // the HVAC mode setting, either Heater or Chiller
     String givenPassCode = "";
+    Boolean doorLockState = null; // the state of the door lock (true if locked, false if unlocked)
+    Boolean passcodeRequiredForLock = null; // whether passcode is required for lock/unlock
+    Boolean doorLockRequest = null; // explicit request: true=lock, false=unlock, null=no request
 
     /**
      * Empty constructor
@@ -254,5 +257,29 @@ public class TartanState {
 
     public void setGivenPassCode(String givenPassCode) {
         this.givenPassCode = givenPassCode;
+    }
+
+    public Boolean getDoorLockState() {
+        return doorLockState;
+    }
+
+    public void setDoorLockState(Boolean doorLockState) {
+        this.doorLockState = doorLockState;
+    }
+
+    public Boolean getPasscodeRequiredForLock() {
+        return passcodeRequiredForLock;
+    }
+
+    public void setPasscodeRequiredForLock(Boolean passcodeRequiredForLock) {
+        this.passcodeRequiredForLock = passcodeRequiredForLock;
+    }
+
+    public Boolean getDoorLockRequest() {
+        return doorLockRequest;
+    }
+
+    public void setDoorLockRequest(Boolean doorLockRequest) {
+        this.doorLockRequest = doorLockRequest;
     }
 }
