@@ -1,11 +1,17 @@
 package tartan.smarthome.resources;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import tartan.smarthome.resources.iotcontroller.NightlockController;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.time.LocalTime;
 import java.util.List;
 
 class StaticTartanStateEvaluatorTestBase {
@@ -814,4 +820,150 @@ class StaticTartanStateEvaluatorUC13EquivalenceClassesTest extends StaticTartanS
                 !chillerState && humidifierState
         );
     }
+
+    @Nested
+    class NightlockControllerTest {
+
+        private TartanState state;
+        private NightlockController nightlock;
+        private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        private final PrintStream originalOut = System.out;
+
+        @BeforeEach
+        public void setUp() {
+            state = new TartanState();
+            nightlock = new NightlockController(state);
+            System.setOut(new PrintStream(outContent));
+        }
+
+        @AfterEach
+        public void tearDown() {
+            System.setOut(originalOut);
+        }
+
+        // ---------- BASIC FUNCTIONALITY TESTS ----------
+
+        @Test
+        public void testNightLockActivatesAtNight() {
+            nightlock.enableNightLock(LocalTime.of(22, 0), LocalTime.of(6, 0));
+            boolean active = nightlock.checkAndApplyNightLock(LocalTime.of(23, 0));
+            assertTrue(active, "Nightlock should activate during night.");
+            assertTrue(state.getDoorLockedState(), "Door should be locked.");
+            assertTrue(outContent.toString().contains("Night Lock activated"), "Activation message expected.");
+        }
+
+        @Test
+        public void testNightLockInactiveDuringDay() {
+            nightlock.enableNightLock(LocalTime.of(22, 0), LocalTime.of(6, 0));
+            boolean active = nightlock.checkAndApplyNightLock(LocalTime.of(10, 0));
+            assertFalse(active, "Nightlock should be inactive during day.");
+            assertFalse(state.getDoorLockedState(), "Door should remain unlocked.");
+            assertTrue(outContent.toString().contains("Night Lock ended"), "Deactivation message expected.");
+        }
+
+        @Test
+        public void testNightLockWrapsPastMidnight() {
+            nightlock.enableNightLock(LocalTime.of(22, 0), LocalTime.of(6, 0));
+            boolean active = nightlock.checkAndApplyNightLock(LocalTime.of(2, 0));
+            assertTrue(active, "Nightlock should activate past midnight.");
+            assertTrue(state.getDoorLockedState());
+        }
+
+        // ---------- BOUNDARY VALUE TESTS ----------
+
+        @Test
+        public void testNightLockAtExactStartTimeInclusive() {
+            nightlock.enableNightLock(LocalTime.of(22, 0), LocalTime.of(6, 0));
+            boolean active = nightlock.checkAndApplyNightLock(LocalTime.of(22, 0));
+            assertTrue(active, "At exact start time, nightlock should activate.");
+            assertTrue(state.getDoorLockedState());
+        }
+
+        @Test
+        public void testNightLockAtExactEndTimeExclusive() {
+            nightlock.enableNightLock(LocalTime.of(22, 0), LocalTime.of(6, 0));
+            boolean active = nightlock.checkAndApplyNightLock(LocalTime.of(6, 0));
+            assertFalse(active, "At exact end time, nightlock should deactivate.");
+            assertFalse(state.getDoorLockedState());
+        }
+
+        @Test
+        public void testNightLockAtMidnight() {
+            nightlock.enableNightLock(LocalTime.of(22, 0), LocalTime.of(6, 0));
+            boolean active = nightlock.checkAndApplyNightLock(LocalTime.MIDNIGHT);
+            assertTrue(active, "Midnight should be within nightlock range.");
+            assertTrue(state.getDoorLockedState());
+        }
+
+        // ---------- MANUAL ACTIVATION / DEACTIVATION TESTS ----------
+
+        @Test
+        public void testActivateNightLockWhenAlreadyLocked() {
+            state.setDoorLockedState(true);
+            nightlock.activateNightLock();
+            assertTrue(outContent.toString().contains("already locked"), "Should detect already locked state.");
+        }
+
+        @Test
+        public void testDeactivateNightLockWhenAlreadyUnlocked() {
+            state.setDoorLockedState(false);
+            nightlock.deactivateNightLock();
+            assertTrue(outContent.toString().contains("already unlocked"), "Should detect already unlocked state.");
+        }
+
+        @Test
+        public void testActivateAndDeactivateManually() {
+            nightlock.activateNightLock();
+            assertTrue(state.getDoorLockedState());
+            nightlock.deactivateNightLock();
+            assertFalse(state.getDoorLockedState());
+        }
+
+        // ---------- RELock BEHAVIOR ----------
+
+        @Test
+        public void testRelockIfUnlockedDuringNight() {
+            nightlock.enableNightLock(LocalTime.of(22, 0), LocalTime.of(6, 0));
+            nightlock.checkAndApplyNightLock(LocalTime.of(23, 0));
+            assertTrue(state.getDoorLockedState());
+
+            // simulate manual unlock during night
+            state.setDoorLockedState(false);
+            nightlock.checkAndApplyNightLock(LocalTime.of(23, 30));
+            assertTrue(state.getDoorLockedState(), "Door should relock automatically at night.");
+        }
+
+        // ---------- EDGE CONFIGURATION TESTS ----------
+
+        @Test
+        public void testNightStartAndEndSameTimeMeansAlwaysUnlocked() {
+            nightlock.enableNightLock(LocalTime.of(10, 0), LocalTime.of(10, 0));
+            boolean active = nightlock.checkAndApplyNightLock(LocalTime.of(10, 0));
+            assertFalse(active, "If start == end, assume nightlock never activates.");
+            assertFalse(state.getDoorLockedState());
+        }
+
+        @Test
+        public void testChangeConfigurationTakesEffect() {
+            nightlock.enableNightLock(LocalTime.of(20, 0), LocalTime.of(4, 0));
+            boolean activeBefore = nightlock.checkAndApplyNightLock(LocalTime.of(19, 0));
+            assertFalse(activeBefore);
+
+            nightlock.enableNightLock(LocalTime.of(18, 0), LocalTime.of(4, 0));
+            boolean activeAfter = nightlock.checkAndApplyNightLock(LocalTime.of(19, 0));
+            assertTrue(activeAfter, "Changing config should update nightlock times.");
+        }
+
+        // ---------- STATE QUERIES ----------
+
+        @Test
+        public void testIsDoorLockedReflectsState() {
+            state.setDoorLockedState(true);
+            assertTrue(nightlock.isDoorLocked());
+            state.setDoorLockedState(false);
+            assertFalse(nightlock.isDoorLocked());
+        }
+
+    }
+
 }
