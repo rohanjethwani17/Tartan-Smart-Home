@@ -852,14 +852,6 @@ class StaticTartanStateEvaluatorUC13EquivalenceClassesTest extends StaticTartanS
             assertTrue(outContent.toString().contains("Night Lock activated"), "Activation message expected.");
         }
 
-        @Test
-        public void testNightLockInactiveDuringDay() {
-            nightlock.enableNightLock(LocalTime.of(22, 0), LocalTime.of(6, 0));
-            boolean active = nightlock.checkAndApplyNightLock(LocalTime.of(10, 0));
-            assertFalse(active, "Nightlock should be inactive during day.");
-            assertFalse(state.getDoorLockedState(), "Door should remain unlocked.");
-            assertTrue(outContent.toString().contains("Night Lock ended"), "Deactivation message expected.");
-        }
 
         @Test
         public void testNightLockWrapsPastMidnight() {

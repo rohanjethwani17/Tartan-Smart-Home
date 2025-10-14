@@ -31,7 +31,7 @@ public class TartanState {
     Boolean keylessEntryEnabled = null;
     List<String> knownDevices = null;
     List<String> detectedDevices = null;
-    private boolean doorLockedState = true;
+    private boolean doorLockedState = false;
 
     /**
      * Empty constructor
@@ -326,7 +326,7 @@ public class TartanState {
     }
 
     public void setDoorLockedState(boolean b) {
-        this.doorLockedState = true;
+        this.doorLockedState = b;
     }
 
     public boolean getDoorLockedState() {

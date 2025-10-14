@@ -37,13 +37,15 @@ public class NightlockController {
      * Deactivates the night lock (unlocks the door)
      */
     public void deactivateNightLock() {
-        if (Boolean.FALSE.equals(tartanState.getDoorLockedState())) {
+        if (!tartanState.getDoorLockedState()) {
+            // Door already unlocked → do nothing
             System.out.println("[ACCESS PANEL] Door already unlocked.");
             return;
         }
         tartanState.setDoorLockedState(false);
         System.out.println("[ACCESS PANEL] Night Lock ended — door unlocked.");
     }
+
 
     /**
      * Returns whether the door is currently locked
@@ -56,16 +58,28 @@ public class NightlockController {
      * Checks current time and applies night lock accordingly.
      * Returns true if the lock is active, false otherwise.
      */
+    /**
+     * Checks current time and applies night lock accordingly.
+     * Returns true if the lock is active, false otherwise.
+     */
     public boolean checkAndApplyNightLock(LocalTime currentTime) {
+        // If nightStart and nightEnd are equal, nightlock never activates
+        if (nightStart.equals(nightEnd)) {
+            deactivateNightLock();
+            return false;
+        }
+
         boolean lockActive;
+
         if (nightStart.isBefore(nightEnd)) {
-            // Night period does not wrap past midnight
+            // Night period does NOT wrap past midnight (same-day range)
             lockActive = !currentTime.isBefore(nightStart) && currentTime.isBefore(nightEnd);
         } else {
             // Night period wraps past midnight
             lockActive = !currentTime.isBefore(nightStart) || currentTime.isBefore(nightEnd);
         }
 
+        // Apply lock state based on current time
         if (lockActive) {
             activateNightLock();
         } else {
@@ -74,4 +88,5 @@ public class NightlockController {
 
         return lockActive;
     }
+
 }
