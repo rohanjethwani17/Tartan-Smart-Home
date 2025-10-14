@@ -12,5 +12,5 @@ In order for this to run properly, MySQL and one or more House Simulator (Hubs) 
 system.
 
 1. Inside the Platform folder, run `./gradlew shadowJar` to build your application
-1. Start application with `./gradlew run`
-1. To check that your application is running enter url `http://localhost:8080/smarthome/state/mse`
+2. Start application with `./gradlew run`
+3. To check that your application is running enter url `http://localhost:8080/smarthome/state/mse`
