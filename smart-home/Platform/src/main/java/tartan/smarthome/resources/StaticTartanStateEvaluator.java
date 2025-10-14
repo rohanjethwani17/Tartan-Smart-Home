@@ -23,6 +23,10 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
      */
     @Override
     public TartanState evaluateState(TartanState inState, StringBuffer log) {
+
+        detectIntruder(inState, log);
+
+
         // Enforce target temperature bounds (R16)
         validateTargetTempSetting(inState, log);
 
@@ -59,9 +63,13 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
         determineHvacSetting(inState, log);
         manageHvacControl(inState, log);
 
+
+        
+        
         processDoorLockRequest(inState, log);
         keylessEntry(inState, log);
-
+        
+        processIntruder(inState, log);
         return inState;
     }
 
@@ -300,6 +308,11 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
         }
     }
 
+    private void notifyPanel(StringBuffer log, String msg){
+        if (log != null) {
+            log.append(formatLogEntry(msg));
+        }
+    }
     // Electronic Operation: process door lock/unlock requests
     /**
      * Process door lock/unlock requests from the access panel, validating passcode if required.
@@ -359,6 +372,40 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
         if (foundMatch) {
             intermediateState.setDoorLockState(false);
             log.append(formatLogEntry("Authorized resident detected, unlocking door"));
+        }
+    }
+
+    private void detectIntruder(TartanState intermediateState, StringBuffer log) {
+        boolean away = Boolean.FALSE.equals(intermediateState.proximityState);
+        boolean doorOpen = Boolean.TRUE.equals(intermediateState.doorState);
+        boolean alarmSet = Boolean.TRUE.equals(intermediateState.alarmState);
+
+        // Intruder detection: away and door open, or alarm set and someone present (not away) and door closed
+        boolean closedDoorBreakIn = alarmSet && Boolean.TRUE.equals(intermediateState.proximityState) && !doorOpen;
+        boolean intruderDetected = (away && doorOpen) || closedDoorBreakIn;
+
+        // if conditions meet, intruder detected
+        if (intruderDetected) {
+            if(!Boolean.TRUE.equals(intermediateState.intruderDetected)){
+                notifyPanel(log, "possible intruder detected");
+                intermediateState.intruderDetected = true;
+            }
+        }
+    }
+
+    private void processIntruder(TartanState intermediateState, StringBuffer log) {
+                // while intruder detected, keep doors locked
+        if (Boolean.TRUE.equals(intermediateState.intruderDetected)) {
+            intermediateState.doorLockState = true;
+        }
+
+        // handle all clear: unlock door and reset flags
+        if (Boolean.TRUE.equals(intermediateState.intruderDetected) && Boolean.TRUE.equals(intermediateState.allClear)) {
+            notifyPanel(log, "all clear");
+            intermediateState.intruderDetected = false;
+            intermediateState.allClear = false;       // reset the signal
+            intermediateState.doorLockState = false;  // unlock door after all clear
+            log.append(formatLogEntry("Door unlocked after all clear"));
         }
     }
 }

@@ -29,6 +29,18 @@ class StaticTartanStateEvaluatorTestBase {
         output.setGivenPassCode("");
         output.setAwayTimerState(false);
         output.setAlarmActiveState(false);
+
+        output.setDoorLockState(false);
+        output.setPasscodeRequiredForLock(false);
+        output.setDoorLockRequest(false);
+
+        output.setKeylessEntryEnabled(false);
+        output.setKnownDevices(List.of());
+        output.setDetectedDevices(List.of());
+
+        output.setIntruderDetected(false);
+        output.setAllClear(false);
+
         return output;
     }
 
@@ -574,7 +586,7 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
     
 
     
-    // Keyless operation tests
+    // Electronic operation tests
     @Test
     public void testLockWithPasscodeRequiredIncorrectPasscode() {
            state.setDoorLockState(false); // currently unlocked
@@ -662,6 +674,43 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
         assertFalse(evaluatedState.getDoorLockState(), "Door should be unlocked when authorized resident is present.");
         assertTrue(log.toString().contains("Authorized resident detected, unlocking door"), "Log should contain automatica door unlock message");
+    }
+
+        /**
+     * Intruder Defense Test:
+     * -When in-home sensors detect the possible presence of an intruder, lock the door and send "possible intruder detected" messages to the access panels.
+     * -Keep the door locked until the sensors provide an "all clear" signal, at which time "all clear" messages are sent to the access panels.
+     */
+    @Test
+    public void test_intruderBreakin() {
+        state.setProximityState(false); // user is away
+        state.setDoorState(true);       // door is open
+        state.setDoorLockState(false);    // doors not locked
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+
+        assertTrue(Boolean.TRUE.equals(evaluatedState.doorLockState));
+        assertTrue(log.toString().contains("possible intruder detected"));
+    }
+
+    @Test
+    public void test_allClearLogs(){
+        state.setProximityState(false); // user is away
+        state.setDoorState(true);       // door is opened
+        state.setDoorLockState(false);    // doors not locked
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+
+        // Sanity: intruder has engaged lock
+        assertTrue(Boolean.TRUE.equals(evaluatedState.doorLockState));
+
+        // 2) Clear the trigger and raise ALL CLEAR
+        evaluatedState.setDoorState(false);  // CLOSED
+        evaluatedState.allClear = true;      // signal all clear
+        evaluator.evaluateState(evaluatedState, log);
+
+        // Must log "Door unlocked after all clear"
+        assertTrue(log.toString().contains("Door unlocked after all clear"));
     }
 }
 
