@@ -138,7 +138,7 @@ class StaticTartanStateEvaluatorTest {
     }
 
     // ============================================================================
-    // BLACKBOX TESTS - G2 Part 1
+    // BLACKBOX TESTS
     // Using equivalence partitioning, boundary value analysis, and edge cases
     // ============================================================================
 
@@ -320,10 +320,7 @@ class StaticTartanStateEvaluatorTest {
                 "81°F should be clamped to 80°F (above maximum boundary).");
     }
 
-    // ============================================================================
-    // ORIGINAL G1 TESTS (preserved below)
-    // ============================================================================
-
+   
     /**
      * R16: The target temperature must be between 50F and 80F.
      * Hard
