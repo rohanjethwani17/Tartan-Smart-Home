@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.List;
+
 class StaticTartanStateEvaluatorTest {
     private StaticTartanStateEvaluator evaluator;
     private TartanState state;
@@ -31,6 +33,9 @@ class StaticTartanStateEvaluatorTest {
         state.setGivenPassCode("");
         state.setAwayTimerState(false);
         state.setAlarmActiveState(false);
+        state.setDoorLockState(true);
+        state.setKnownDevices(List.of(""));
+        state.setDetectedDevices(List.of(""));
     }
 
     /**
@@ -248,5 +253,20 @@ class StaticTartanStateEvaluatorTest {
            TartanState evaluatedState = evaluator.evaluateState(state, log);
            assertFalse(evaluatedState.getDoorLockState(), "Door should be unlocked when no passcode required.");
            assertTrue(log.toString().contains("unlocked"), "Log should contain success message.");
+    }
+
+    // Keyless Entry
+    @Test
+    public void testKeylessEntryAuthorizedUnlock() {
+        state.setKeylessEntryEnabled(true);
+        state.setDoorLockState(true); // door is locked
+        state.setKnownDevices(List.of("known_phone1", 
+        "known_phone2", "known_phone3"));
+        state.setDetectedDevices(List.of("known_phone2"));
+        // No manual unlock request
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertFalse(evaluatedState.getDoorLockState(), "Door should be unlocked when authorized resident is present.");
+        assertTrue(log.toString().contains("Authorized resident detected, unlocking door"), "Log should contain automatica door unlock message");
     }
 }
