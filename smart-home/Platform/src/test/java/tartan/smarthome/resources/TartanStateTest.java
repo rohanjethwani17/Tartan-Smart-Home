@@ -18,7 +18,7 @@ class TartanStateTest {
     @Test
     void test_toAndFromStateMap(){
         Map<String, Object> stateMap = state.toStateMap();
-        assertEquals(TartanState.fromStateMap(stateMap), state);
+        assertEquals(state, TartanState.fromStateMap(stateMap));
     }
 
     @Test

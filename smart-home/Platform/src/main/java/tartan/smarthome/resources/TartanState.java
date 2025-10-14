@@ -91,11 +91,20 @@ public class TartanState {
      */
     public Map<String, Object> toStateMap() {
         Hashtable<String, Object> output = new Hashtable<>();
+        if (tempReading != null) {
+            output.put(IoTValues.TEMP_READING, tempReading);
+        }
+        if (targetTempSetting != null) {
+            output.put(IoTValues.TARGET_TEMP, targetTempSetting);
+        }
+        if(humidityReading != null){
+            output.put(IoTValues.HUMIDITY_READING, humidityReading);
+        }
+        if(alarmDelay != null){
+            output.put(IoTValues.ALARM_DELAY, alarmDelay);
+        }
         if (doorState != null) {
             output.put(IoTValues.DOOR_STATE, doorState);
-        }
-        if (awayTimerState != null) {
-            output.put(IoTValues.AWAY_TIMER, awayTimerState);
         }
         if (lightState != null) {
             output.put(IoTValues.LIGHT_STATE, lightState);
@@ -118,18 +127,19 @@ public class TartanState {
         if (alarmActiveState != null) {
             output.put(IoTValues.ALARM_ACTIVE, alarmActiveState);
         }
-        if (hvacSetting != null) {
-            output.put(IoTValues.HVAC_MODE, hvacSetting);
+        if (awayTimerState != null) {
+            output.put(IoTValues.AWAY_TIMER, awayTimerState);
         }
         if (alarmPassCode != null) {
             output.put(IoTValues.ALARM_PASSCODE, alarmPassCode);
         }
+        if (hvacSetting != null) {
+            output.put(IoTValues.HVAC_MODE, hvacSetting);
+        }
         if (givenPassCode != null) {
             output.put(IoTValues.GIVEN_PASSCODE, givenPassCode);
         }
-        if (targetTempSetting != null) {
-            output.put(IoTValues.TARGET_TEMP, targetTempSetting);
-        }
+        // TODO Door lock state inside IoTValues and others
 
         return output;
     }
