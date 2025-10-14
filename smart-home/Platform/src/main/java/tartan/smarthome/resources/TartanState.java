@@ -375,4 +375,32 @@ public class TartanState {
                 getKnownDevices(),
                 getDetectedDevices());
     }
+
+    @Override
+    public String toString() {
+        return "TartanState{" +
+                "tempReading=" + tempReading +
+                ", targetTempSetting=" + targetTempSetting +
+                ", humidityReading=" + humidityReading +
+                ", alarmDelay=" + alarmDelay +
+                ", doorState=" + doorState +
+                ", lightState=" + lightState +
+                ", proximityState=" + proximityState +
+                ", alarmState=" + alarmState +
+                ", humidifierState=" + humidifierState +
+                ", heaterOnState=" + heaterOnState +
+                ", chillerOnState=" + chillerOnState +
+                ", alarmActiveState=" + alarmActiveState +
+                ", awayTimerState=" + awayTimerState +
+                ", alarmPassCode='" + alarmPassCode + '\'' +
+                ", hvacSetting='" + hvacSetting + '\'' +
+                ", givenPassCode='" + givenPassCode + '\'' +
+                ", doorLockState=" + doorLockState +
+                ", passcodeRequiredForLock=" + passcodeRequiredForLock +
+                ", doorLockRequest=" + doorLockRequest +
+                ", keylessEntryEnabled=" + keylessEntryEnabled +
+                ", knownDevices=" + knownDevices +
+                ", detectedDevices=" + detectedDevices +
+                '}';
+    }
 }
