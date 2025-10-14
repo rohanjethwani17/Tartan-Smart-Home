@@ -1,4 +1,4 @@
-<!-- This Apache Freemarker script is similar to a Java Server Page. It renders Dynamic server-side contnent.
+<!-- This Apache Freemarker script is similar to a Java Server Page. It renders Dynamic server-side content.
 See -->
 <#-- @ftlvariable name="" type="tartan.smarthome.views.SmartHomeView" -->
 <html lang="us">

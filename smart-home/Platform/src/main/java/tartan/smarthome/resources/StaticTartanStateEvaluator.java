@@ -8,7 +8,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
     static final int TARGET_TEMP_MAX_F = 80;
 
     private String formatLogEntry(String entry) {
-        Long timeStamp = System.currentTimeMillis();
+        long timeStamp = System.currentTimeMillis();
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
         return "[" + sdf.format(new Date(timeStamp)) + "]: " + entry + "\n";
     }
@@ -23,9 +23,6 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
      */
     @Override
     public TartanState evaluateState(TartanState inState, StringBuffer log) {
-
-        System.out.println("Evaluating new state statically");
-
         // Enforce target temperature bounds (R16)
         validateTargetTempSetting(inState, log);
 
@@ -234,7 +231,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
         }
 
         // Chiller
-        if (tempReading < targetTempSetting) {
+        if (tempReading > targetTempSetting) {
             log.append(formatLogEntry(String.format(
                     "Turning on air conditioner, target temperature = %dF, current temperature = %dF",
                     targetTempSetting,
