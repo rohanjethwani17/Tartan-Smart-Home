@@ -11,6 +11,8 @@ import java.util.Vector;
  * 1.0 November 2015 - initial version
  */
 public class LoginHandler {
+    /** the maximum number of unsuccessful attempts before lockout */
+    static final int MAX_ATTEMPTS = 3;
 
     /** the number of unsuccessful login attempts */
     private int times;
@@ -33,14 +35,14 @@ public class LoginHandler {
 
     /**
      * Authenticate the username and password
-     * @param username the user name
+     * @param username the username
      * @param password the password
      * @return true if authenticated, false otherwise
-     * @throws LoginAttemptsExceededException
+     * @throws LoginAttemptsExceededException if
      */
     public Boolean authenticate(String username, String password) throws LoginAttemptsExceededException {
 
-        if (times > 3) throw new LoginAttemptsExceededException();
+        if (times > MAX_ATTEMPTS) throw new LoginAttemptsExceededException();
 
         for (UserLoginInfo uli : validUsers) {
             String un = uli.getUserName();

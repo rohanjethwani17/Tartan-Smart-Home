@@ -5,6 +5,7 @@ import tartan.smarthome.resources.iotcontroller.IoTValues;
 
 import java.util.Collections;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 public class TartanState {
@@ -25,8 +26,15 @@ public class TartanState {
     String hvacSetting = null; // the HVAC mode setting, either Heater or Chiller
     String givenPassCode = "";
 
+    Boolean doorLockState = null; // the state of the door lock (true if locked, false if unlocked)
+    Boolean passcodeRequiredForLock = null; // whether passcode is required for lock/unlock
+    Boolean doorLockRequest = null; // explicit request: true=lock, false=unlock, null=no request
+    
+    Boolean keylessEntryEnabled = null;
+    List<String> knownDevices = null;
+    List<String> detectedDevices = null;
+
     // IntruderDefense Controller
-    Boolean lockEngaged = null;
     Boolean intruderDetected = null;
     Boolean allClear = null;
 
@@ -89,38 +97,50 @@ public class TartanState {
 
     /**
      * Turn this object back into the legacy state map `Map< String, Object>` type
-     *
-     * @param removeNull if true, any null fields are not included in the final state map.
      */
-    public Map<String, Object> toStateMap(boolean removeNull) {
+    public Map<String, Object> toStateMap(){
         Hashtable<String, Object> output = new Hashtable<>();
-        output.put(IoTValues.DOOR_STATE, doorState);
-        output.put(IoTValues.AWAY_TIMER, awayTimerState);
-        output.put(IoTValues.LIGHT_STATE, lightState);
-        output.put(IoTValues.PROXIMITY_STATE, proximityState);
-        output.put(IoTValues.ALARM_STATE, alarmState);
-        output.put(IoTValues.HUMIDIFIER_STATE, humidifierState);
-        output.put(IoTValues.HEATER_STATE, heaterOnState);
-        output.put(IoTValues.CHILLER_STATE, chillerOnState);
-        output.put(IoTValues.ALARM_ACTIVE, alarmActiveState);
-        output.put(IoTValues.HVAC_MODE, hvacSetting);
-        output.put(IoTValues.ALARM_PASSCODE, alarmPassCode);
-        output.put(IoTValues.GIVEN_PASSCODE, givenPassCode);
-        output.put(IoTValues.TARGET_TEMP, targetTempSetting);
-
-        if (removeNull) {
-            // https://stackoverflow.com/questions/37664374/java-how-to-remove-all-null-elements-from-a-map
-            output.values().removeAll(Collections.singleton(null));
+        if(doorState != null){
+            output.put(IoTValues.DOOR_STATE, doorState);
         }
-        return output;
-    }
+        if(awayTimerState != null){
+            output.put(IoTValues.AWAY_TIMER, awayTimerState);
+        }
+        if(lightState != null){
+            output.put(IoTValues.LIGHT_STATE, lightState);
+        }
+        if(proximityState != null){
+            output.put(IoTValues.PROXIMITY_STATE, proximityState);
+        }
+        if(alarmState != null){
+            output.put(IoTValues.ALARM_STATE, alarmState);
+        }
+        if(humidifierState != null){
+            output.put(IoTValues.HUMIDIFIER_STATE, humidifierState);
+        }
+        if(heaterOnState != null){
+            output.put(IoTValues.HEATER_STATE, heaterOnState);
+        }
+        if(chillerOnState != null){
+            output.put(IoTValues.CHILLER_STATE, chillerOnState);
+        }
+        if(alarmActiveState != null){
+            output.put(IoTValues.ALARM_ACTIVE, alarmActiveState);
+        }
+        if(hvacSetting != null){
+            output.put(IoTValues.HVAC_MODE, hvacSetting);
+        }
+        if(alarmPassCode != null){
+            output.put(IoTValues.ALARM_PASSCODE, alarmPassCode);
+        }
+        if(givenPassCode != null){
+            output.put(IoTValues.GIVEN_PASSCODE, givenPassCode);
+        }
+        if(targetTempSetting != null){
+            output.put(IoTValues.TARGET_TEMP, targetTempSetting);
+        }
 
-    /**
-     * Turn this object back into the legacy state map `Map< String, Object>` type.
-     * null elements will be included in the map.
-     */
-    public Map<String, Object> toStateMap() {
-        return this.toStateMap(false);
+        return output;
     }
 
     /**
@@ -128,8 +148,8 @@ public class TartanState {
      *
      * @param fromState the state to merge values from
      */
-    public void mergeState(TartanState fromState) {
-        Map<String, Object> intermediateOverwriteState = fromState.toStateMap(true);
+    public void mergeState(TartanState fromState){
+        Map<String, Object> intermediateOverwriteState = fromState.toStateMap();
         Map<String, Object> intermediateSourceState = this.toStateMap();
         intermediateSourceState.putAll(intermediateOverwriteState);
         loadFromStateMap(intermediateSourceState);
@@ -263,12 +283,56 @@ public class TartanState {
         this.givenPassCode = givenPassCode;
     }
 
-    public Boolean getLockEngaged(){return lockEngaged;}
-    public void setLockEngaged(Boolean lockEngaged){this.lockEngaged = lockEngaged;}
-
     public Boolean getIntruderDetected(){return intruderDetected;}
     public void setIntruderDetected(Boolean intruderDetected) {this.intruderDetected = intruderDetected;}
 
     public Boolean getAllClear() {return allClear;}
     public void setAllClear(Boolean allClear){this.allClear = allClear;}
+    public Boolean getDoorLockState() {
+        return doorLockState;
+    }
+
+    public void setDoorLockState(Boolean doorLockState) {
+        this.doorLockState = doorLockState;
+    }
+
+    public Boolean getPasscodeRequiredForLock() {
+        return passcodeRequiredForLock;
+    }
+
+    public void setPasscodeRequiredForLock(Boolean passcodeRequiredForLock) {
+        this.passcodeRequiredForLock = passcodeRequiredForLock;
+    }
+
+    public Boolean getDoorLockRequest() {
+        return doorLockRequest;
+    }
+
+    public void setDoorLockRequest(Boolean doorLockRequest) {
+        this.doorLockRequest = doorLockRequest;
+    }
+
+    public Boolean getKeylessEntryEnabled() {
+        return doorLockRequest;
+    }
+
+    public void setKeylessEntryEnabled(Boolean keylessEntryEnabled) {
+        this.keylessEntryEnabled = keylessEntryEnabled;
+    }
+
+    public List<String> getKnownDevices() {
+        return knownDevices;
+    }
+
+    public void setKnownDevices(List<String> knownDevices) {
+        this.knownDevices = knownDevices;
+    }
+
+      public List<String> getDetectedDevices() {
+        return detectedDevices;
+    }
+
+    public void setDetectedDevices(List<String> detectedDevices) {
+        this.detectedDevices = detectedDevices;
+    }
 }

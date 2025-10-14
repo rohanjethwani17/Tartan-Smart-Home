@@ -5,7 +5,7 @@ import tartan.smarthome.core.TartanHome;
 
 /**
  * A view of the house state.
- * @see <a href="https://www.dropwizard.io/1.0.0/docs/manual/views.html">Dropwizard Views</a>
+ * @see <a href="https://www.dropwizard.io/en/stable/manual/views.html">Dropwizard Views</a>
  */
 public class SmartHomeView extends View {
     private TartanHome tartanHome;

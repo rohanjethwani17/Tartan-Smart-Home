@@ -54,8 +54,7 @@ database:
    password: tartan1234
 
    # the JDBC URL; the database is called TartanHome
-   url:
-jdbc:mysql://localhost/TartanHome?useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+   url: jdbc:mysql://localhost/TartanHome?useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
 
    # Allow Hibernate to create tables
    properties:

@@ -300,9 +300,8 @@ public class TartanHomeService {
     /**
      * Set the house state in the hardware
      * @param h the new state
-     * @return true
      */
-    public Boolean setState(TartanHome h) {
+    public void setState(TartanHome h) {
         synchronized (controller) {
                         
             TartanState userSettings = new TartanState();
@@ -318,7 +317,6 @@ public class TartanHomeService {
             controller.updateSettings(userSettings);  
             controller.processStateUpdate(toIotState(h));  
         }
-        return true;
     }
 
     /**
