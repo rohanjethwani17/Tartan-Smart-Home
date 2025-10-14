@@ -293,4 +293,10 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
             intermediateState.humidifierState = false;
         }
     }
+
+    private void notifyPanel(StringBuffer log, String msg){
+        if (log != null) {
+            log.append(formatLogEntry(msg));
+        }
+    }
 }
