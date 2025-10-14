@@ -70,6 +70,9 @@ public class TartanState {
 
     /**
      * Create a TartanState from a String->Object state map.
+     * Any value not in the state map is assumed to be null
+     * @param stateMap legacy style state map
+     * @return TartanState with the same data
      */
     public static TartanState fromStateMap(Map<String, Object> stateMap) {
         TartanState output = new TartanState();
@@ -78,7 +81,8 @@ public class TartanState {
     }
 
     /**
-     * Convert this object to a legacy state map.
+     * Turn this object back into the legacy state map `Map< String, Object>` type
+     * @param removeNull if true, any null fields are not included in the final state map.
      */
     public Map<String, Object> toStateMap(boolean removeNull) {
         Hashtable<String, Object> output = new Hashtable<>();
@@ -100,15 +104,21 @@ public class TartanState {
         if (removeNull) {
             output.values().removeAll(Collections.singleton(null));
         }
+        // https://stackoverflow.com/questions/37664374/java-how-to-remove-all-null-elements-from-a-map
         return output;
     }
-
+    /**
+     * Turn this object back into the legacy state map `Map< String, Object>` type.
+     * null elements will be included in the map.
+     */
     public Map<String, Object> toStateMap() {
         return this.toStateMap(false);
     }
 
     /**
      * Update this state by overriding all non-null fields of fromState.
+     *
+     * @param fromState the state to merge values from
      */
     public void mergeState(TartanState fromState) {
         Map<String, Object> intermediateOverwriteState = fromState.toStateMap(true);

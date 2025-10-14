@@ -6,6 +6,8 @@ import tartan.smarthome.resources.iotcontroller.IoTValues;
 import tartan.smarthome.resources.iotcontroller.NightlockController;
 
 import java.time.LocalTime;
+import java.util.Hashtable;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -36,7 +38,10 @@ class StaticTartanStateEvaluatorTest {
         state.setAlarmActiveState(false);
         state.setDoorLockedState(false);
     }
-
+    /**
+     * R1: If the house is vacant, then the light cannot be turned on.
+     * Easy
+     */
     @Test
     public void testR1_VacantHouseTurnsLightOff() {
         state.setProximityState(false);
@@ -45,7 +50,10 @@ class StaticTartanStateEvaluatorTest {
         TartanState evaluatedState = evaluator.evaluateState(state, log);
         assertFalse(evaluatedState.getLightState(), "Light should not be on when the house is vacant.");
     }
-
+    /**
+     * R3: If the house is vacant, then close the door.
+     * Easy
+     */
     @Test
     public void testR3_VacantHouseClosesDoor() {
         state.setProximityState(false);
@@ -54,7 +62,10 @@ class StaticTartanStateEvaluatorTest {
         TartanState evaluatedState = evaluator.evaluateState(state, log);
         assertFalse(evaluatedState.getDoorState(), "Door should be closed if house is vacant.");
     }
-
+    /**
+     * R8: If the house becomes occupied while the alarm is disabled, then turn on the lights for the legitimate user.
+     * Medium
+     */
     @Test
     public void testR8_OccupiedWithDisabledAlarmTurnsLightOn() {
         state.setProximityState(true);
@@ -67,7 +78,10 @@ class StaticTartanStateEvaluatorTest {
         assertFalse(evaluatedState.getAlarmState(), "Alarm should be off.");
         assertTrue(evaluatedState.getLightState(), "Light should turn on.");
     }
-
+    /**
+     * R10: The heater and the dehumidifier cannot be run simultaneously.
+     * Medium
+     */
     @Test
     public void testR10_NoSimultaneousHeaterDehumidifier() {
         state.setHeaterOnState(true);
@@ -77,7 +91,10 @@ class StaticTartanStateEvaluatorTest {
         assertFalse(evaluatedState.getHeaterOnState() && evaluatedState.getHumidifierState(),
                 "Heater and humidifier cannot be on at the same time.");
     }
-
+    /**
+     * R13: The correct passcode is required to disable the alarm.
+     * Hard
+     */
     @Test
     public void testR13_CannotDisableAlarmWithWrongPasscode() {
         state.setProximityState(true);
@@ -101,7 +118,10 @@ class StaticTartanStateEvaluatorTest {
         assertFalse(evaluatedState.getAlarmState(),
                 "Alarm should be disabled with the correct passcode.");
     }
-
+    /**
+     * R16: The target temperature must be between 50F and 80F.
+     * Hard
+     */
     @Test
     public void testR16_targetTemperatureMustBeWithin50to80F() {
         state.setTargetTempSetting(50);
@@ -120,7 +140,9 @@ class StaticTartanStateEvaluatorTest {
         assertEquals(80, evaluator.evaluateState(state, log).getTargetTempSetting(),
                 "81°F is out of range; value should clamp to 80°F.");
     }
-
+    /**
+     * test nightlock
+     */
     @Test
     public void testNightLockActivatesAtNight() {
         NightlockController nightlock = new NightlockController(state);
