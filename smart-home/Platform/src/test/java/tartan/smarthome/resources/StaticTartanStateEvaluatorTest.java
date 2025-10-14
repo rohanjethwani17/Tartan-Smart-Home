@@ -599,6 +599,61 @@ class StaticTartanStateEvaluatorUC12EquivalenceClassesTest extends StaticTartanS
     }
 }
 
+class StaticTartanStateEvaluatorUC06BlackboxTest extends StaticTartanStateEvaluatorTest {
+
+    /**
+     * UC06: With alarm enabled, opening the door should activate the alarm.
+     */
+    @Test
+    public void testUC06_AlarmEnabled_DoorOpened_SoundsAlarm() {
+        // Setup: alarm enabled, house vacant, door opened
+        state.setAlarmState(true);
+        state.setProximityState(false);
+        state.setDoorState(true);
+
+        TartanState evaluated = evaluator.evaluateState(state, log);
+        assertTrue(evaluated.getAlarmActiveState(),
+                "Alarm should sound when door is opened with alarm enabled and house vacant.");
+    }
+
+    /**
+     * UC06: With alarm enabled, house suddenly occupied should activate the alarm.
+     */
+    @Test
+    public void testUC06_AlarmEnabled_NewlyOccupied_SoundsAlarm() {
+        // Setup: alarm enabled, door closed, house occupied
+        state.setAlarmState(true);
+        state.setDoorState(false);
+        state.setProximityState(true);
+
+        TartanState evaluated = evaluator.evaluateState(state, log);
+        assertTrue(evaluated.getAlarmActiveState(),
+                "Alarm should sound when house becomes occupied while alarm is enabled.");
+    }
+}
+
+class StaticTartanStateEvaluatorUC07BlackboxTest extends StaticTartanStateEvaluatorTest {
+
+    /**
+     * UC07: When away timer is set, system closes door, turns off light, and enables alarm.
+     */
+    @Test
+    public void testUC07_AwayTimer_ArmsAlarm_ClosesDoor_TurnsOffLight() {
+        // Setup: away timer set, and set states opposite to expected to verify changes
+        state.setAwayTimerState(true);
+        state.setLightState(true);
+        state.setDoorState(true);
+        state.setAlarmState(false);
+
+        TartanState evaluated = evaluator.evaluateState(state, log);
+
+        assertFalse(evaluated.getLightState(), "Light should be turned off by away timer.");
+        assertFalse(evaluated.getDoorState(), "Door should be closed by away timer.");
+        assertTrue(evaluated.getAlarmState(), "Alarm should be enabled by away timer.");
+        assertFalse(evaluated.getAwayTimerState(), "Away timer flag should reset to false after application.");
+    }
+}
+
 class StaticTartanStateEvaluatorUC13EquivalenceClassesTest extends StaticTartanStateEvaluatorTest {
 
     @Test
