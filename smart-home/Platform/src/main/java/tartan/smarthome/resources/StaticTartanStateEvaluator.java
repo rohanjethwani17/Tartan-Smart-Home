@@ -26,7 +26,6 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
 
         System.out.println("Evaluating new state statically");
 
-
         // Enforce target temperature bounds (R16)
         validateTargetTempSetting(inState, log);
 
@@ -64,6 +63,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
         manageHvacControl(inState, log);
 
         processDoorLockRequest(inState, log);
+        keylessEntry(inState, log);
 
         return inState;
     }
@@ -331,6 +331,23 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
             }
             // Reset request after processing
             intermediateState.setDoorLockRequest(null);
+        }
+    }
+
+    // Keyless Entry: Unlock door if authorized resident present
+    /**
+     * Automatically unlocks door if an authorized resident is nearby
+     * Updates doorLockState and appends messages to log.
+     */
+    private void keylessEntry(TartanState intermediateState, StringBuffer log) {
+        if (intermediateState.keylessEntryEnabled == null || !intermediateState.keylessEntryEnabled) return;
+
+        boolean foundMatch = intermediateState.detectedDevices.stream().anyMatch(intermediateState.knownDevices::contains);
+
+
+        if (foundMatch) {
+            intermediateState.setDoorLockState(false);
+            log.append(formatLogEntry("Authorized resident detected, unlocking door"));
         }
     }
 }
