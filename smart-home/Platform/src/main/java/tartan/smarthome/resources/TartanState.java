@@ -87,33 +87,31 @@ public class TartanState {
     public Map<String, Object> toStateMap(){
         Hashtable<String, Object> output = new Hashtable<>();
         if(doorState != null){
-            output.put(IoTValues.DOOR_STATE, doorState ? IoTValues.DOOR_OPEN : IoTValues.DOOR_CLOSE);
+            output.put(IoTValues.DOOR_STATE, doorState);
         }
         if(awayTimerState != null){
-            // TODO do we need IoTValues for awayTimerState?
             output.put(IoTValues.AWAY_TIMER, awayTimerState);
         }
         if(lightState != null){
-            output.put(IoTValues.LIGHT_STATE, lightState ? IoTValues.LIGHT_ON : IoTValues.LIGHT_OFF);
+            output.put(IoTValues.LIGHT_STATE, lightState);
         }
         if(proximityState != null){
-            // TODO we definitely need a PROXIMITY_VACANT and PROXIMITY_OCCUPIED
             output.put(IoTValues.PROXIMITY_STATE, proximityState);
         }
         if(alarmState != null){
-            output.put(IoTValues.ALARM_STATE, alarmState? IoTValues.ALARM_ENABLED : IoTValues.ALARM_DISABLED);
+            output.put(IoTValues.ALARM_STATE, alarmState);
         }
         if(humidifierState != null){
-            output.put(IoTValues.HUMIDIFIER_STATE, humidifierState ? IoTValues.HUMIDIFIER_ON : IoTValues.HUMIDIFIER_OFF);
+            output.put(IoTValues.HUMIDIFIER_STATE, humidifierState);
         }
         if(heaterOnState != null){
-            output.put(IoTValues.HEATER_STATE, heaterOnState ? IoTValues.HEATER_ON : IoTValues.HEATER_OFF);
+            output.put(IoTValues.HEATER_STATE, heaterOnState);
         }
         if(chillerOnState != null){
-            output.put(IoTValues.CHILLER_STATE, chillerOnState ? IoTValues.CHILLER_ON : IoTValues.CHILLER_OFF);
+            output.put(IoTValues.CHILLER_STATE, chillerOnState);
         }
         if(alarmActiveState != null){
-            output.put(IoTValues.ALARM_ACTIVE, alarmActiveState ? IoTValues.ALARM_ON : IoTValues.ALARM_OFF);
+            output.put(IoTValues.ALARM_ACTIVE, alarmActiveState);
         }
         if(hvacSetting != null){
             output.put(IoTValues.HVAC_MODE, hvacSetting);
