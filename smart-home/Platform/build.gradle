@@ -1,6 +1,19 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        //Needed only for SNAPSHOT versions
+        //maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+    }
+    dependencies {
+        classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.19.0-rc.2'
+    }
+}
+
 plugins {
     id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'jacoco'
+    id 'java'
+    id 'info.solidsoft.pitest' version '1.15.0'
 }
 group 'Tartan'
 version '1.0-SNAPSHOT'
@@ -117,4 +130,13 @@ jacocoTestCoverageVerification {
             }
         }
     }
+}
+
+pitest {
+    junit5PluginVersion = '1.2.2'
+    pitestVersion = '1.18.2'
+    testSourceSets = [sourceSets.test]
+    targetClasses = ['tartan.smarthome.resources.StaticTartanStateEvaluator', 'tartan.smarthome.resources.TartanState']
+    threads=10
+    outputFormats = ['XML', 'HTML']
 }
