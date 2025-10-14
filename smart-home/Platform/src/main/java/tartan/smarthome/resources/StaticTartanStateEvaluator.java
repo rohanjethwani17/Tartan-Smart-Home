@@ -2,7 +2,6 @@ package tartan.smarthome.resources;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
-import java.util.Map;
 
 public class StaticTartanStateEvaluator implements TartanStateEvaluator {
     static final int TARGET_TEMP_MIN_F = 50;
@@ -24,10 +23,6 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
      */
     @Override
     public TartanState evaluateState(TartanState inState, StringBuffer log) {
-
-        System.out.println("Evaluating new state statically");
-
-
         // Enforce target temperature bounds (R16)
         validateTargetTempSetting(inState, log);
 

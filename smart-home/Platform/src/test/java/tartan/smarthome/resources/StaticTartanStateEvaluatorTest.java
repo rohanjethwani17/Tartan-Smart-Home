@@ -2,38 +2,39 @@ package tartan.smarthome.resources;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import tartan.smarthome.resources.iotcontroller.IoTValues;
-
-import java.util.Hashtable;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class StaticTartanStateEvaluatorTest {
-    private StaticTartanStateEvaluator evaluator;
-    private TartanState state;
-    private StringBuffer log;
+    StaticTartanStateEvaluator evaluator;
+    TartanState state;
+    StringBuffer log;
+
+    public static TartanState createPlausibleTestState() {
+        TartanState output = new TartanState();
+        output.setTempReading(68);
+        output.setHumidityReading(50);
+        output.setTargetTempSetting(72);
+        output.setHumidifierState(false);
+        output.setDoorState(false);
+        output.setLightState(false);
+        output.setProximityState(false);
+        output.setAlarmState(false);
+        output.setHeaterOnState(false);
+        output.setChillerOnState(false);
+        output.setHvacSetting("OFF");
+        output.setAlarmPassCode("passcode");
+        output.setGivenPassCode("");
+        output.setAwayTimerState(false);
+        output.setAlarmActiveState(false);
+        return output;
+    }
 
     @BeforeEach
     public void setUp() {
         evaluator = new StaticTartanStateEvaluator();
         log = new StringBuffer();
-        state = new TartanState();
-        state.setTempReading(68);
-        state.setHumidityReading(50);
-        state.setTargetTempSetting(72);
-        state.setHumidifierState(false);
-        state.setDoorState(false);
-        state.setLightState(false);
-        state.setProximityState(false);
-        state.setAlarmState(false);
-        state.setHeaterOnState(false);
-        state.setChillerOnState(false);
-        state.setHvacSetting("OFF");
-        state.setAlarmPassCode("passcode");
-        state.setGivenPassCode("");
-        state.setAwayTimerState(false);
-        state.setAlarmActiveState(false);
+        state = createPlausibleTestState();
     }
 
     /**
@@ -320,7 +321,6 @@ class StaticTartanStateEvaluatorTest {
                 "81°F should be clamped to 80°F (above maximum boundary).");
     }
 
-   
     /**
      * R16: The target temperature must be between 50F and 80F.
      * Hard
@@ -358,5 +358,101 @@ class StaticTartanStateEvaluatorTest {
             assertEquals(80, evaluatedState.getTargetTempSetting(),
                     "81°F is out of range; value should clamp to 80°F.");
         }
+    }
+}
+
+class StaticTartanStateEvaluatorUC12EquivalenceClassesTest extends StaticTartanStateEvaluatorTest {
+    @Test
+    public void test_hotter_target() {
+        state.setTempReading(60);
+        state.setTargetTempSetting(61);
+        // Hotter temperature target means the AC should be off, and the heater should be on
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertFalse(evaluatedState.getChillerOnState());
+        assertTrue(evaluatedState.getHeaterOnState());
+    }
+
+    @Test
+    public void test_colder_target() {
+        state.setTempReading(60);
+        state.setTargetTempSetting(59);
+        // Colder temperature target means AC should be on, heater should be off
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertTrue(evaluatedState.getChillerOnState());
+        assertFalse(evaluatedState.getHeaterOnState());
+    }
+
+    @Test
+    public void test_manual_heater_chiller_setting() {
+        // manually enable the heater and chiller, make sure they fix themselves post-evaluation
+        state.setChillerOnState(true);
+        state.setHeaterOnState(true);
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertFalse(
+                evaluatedState.getChillerOnState() && evaluatedState.getHeaterOnState()
+        );
+    }
+}
+
+class StaticTartanStateEvaluatorUC13EquivalenceClassesTest extends StaticTartanStateEvaluatorTest {
+
+    @Test
+    public void test_AC_off_DH_off_valid() {
+        state.setChillerOnState(false);
+        state.setHumidifierState(false);
+
+        // set the temperature and target so the AC doesn't automatically enable
+        state.setTempReading(60);
+        state.setTargetTempSetting(61);
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertFalse(evaluatedState.getChillerOnState());
+        assertFalse(evaluatedState.getHumidifierState());
+    }
+
+    @Test
+    public void test_AC_on_DH_off_valid() {
+        state.setChillerOnState(true);
+        state.setHumidifierState(false);
+
+        // set the temperature and target so the AC doesn't automatically disable
+        state.setTempReading(60);
+        state.setTargetTempSetting(59);
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertTrue(evaluatedState.getChillerOnState());
+        assertFalse(evaluatedState.getHumidifierState());
+    }
+
+    @Test
+    public void test_AC_on_DH_on_valid() {
+        state.setChillerOnState(true);
+        state.setHumidifierState(true);
+
+        // set the temperature and target so the AC doesn't automatically disable
+        state.setTempReading(60);
+        state.setTargetTempSetting(59);
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertTrue(evaluatedState.getChillerOnState());
+        assertTrue(evaluatedState.getHumidifierState());
+    }
+
+    @Test
+    public void test_AC_off_DH_on_invalid() {
+        state.setChillerOnState(false);
+        state.setHumidifierState(false);
+
+        // set the temperature and target so the AC doesn't automatically enable
+        state.setTempReading(60);
+        state.setTargetTempSetting(61);
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        Boolean chillerState = evaluatedState.getChillerOnState();
+        Boolean humidifierState = evaluatedState.getHumidifierState();
+        // it should not be the case that things are as they were before (AC off and DH on)
+        assertFalse(
+                !chillerState && humidifierState
+        );
     }
 }

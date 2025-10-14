@@ -107,7 +107,7 @@ public class TartanResource {
     }
 
     /**
-     * update the house state via a HTTP POST. Managed by Jersey
+     * update the house state via an HTTP POST. Managed by Jersey
      * @param house the house
      * @param user the user allowed to access this house
      * @param h the new state
