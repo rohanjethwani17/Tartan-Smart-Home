@@ -359,6 +359,211 @@ class StaticTartanStateEvaluatorTest {
                     "81°F is out of range; value should clamp to 80°F.");
         }
     }
+
+    // ============================================================================
+    // R3 BLACKBOX TESTS
+    // ============================================================================
+
+    /**
+     * R3 BLACKBOX TEST: Occupied house with door open
+     * Strategy: Equivalence partitioning - valid state
+     * 
+     * Test that door can remain open when house is occupied.
+     */
+    @Test
+    public void testR3_Blackbox_OccupiedHouseDoorCanStayOpen() {
+        // Setup: house occupied, door open
+        state.setProximityState(true);
+        state.setDoorState(true);
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+
+        // Verify: door should remain open when occupied
+        assertTrue(evaluatedState.getDoorState(), 
+                "Door should be allowed to stay open when house is occupied.");
+        assertTrue(evaluatedState.getProximityState(), 
+                "House should remain occupied.");
+    }
+
+    /**
+     * R3 BLACKBOX TEST: Vacant house with door closed
+     * Strategy: Equivalence partitioning - valid state
+     * 
+     * Test that door remains closed when house is vacant and door already closed.
+     */
+    @Test
+    public void testR3_Blackbox_VacantHouseDoorAlreadyClosed() {
+        // Setup: house vacant, door already closed
+        state.setProximityState(false);
+        state.setDoorState(false);
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+
+        // Verify: door should remain closed
+        assertFalse(evaluatedState.getDoorState(), 
+                "Door should remain closed when house is vacant.");
+        assertFalse(evaluatedState.getProximityState(), 
+                "House should remain vacant.");
+    }
+
+    // ============================================================================
+    // R8 BLACKBOX TESTS
+    // ============================================================================
+
+    /**
+     * R8 BLACKBOX TEST: House already occupied, alarm disabled, light off
+     * Strategy: Equivalence partitioning
+     * 
+     * Test that light turns on when house is occupied and alarm is disabled,
+     * even if the house was already occupied.
+     */
+    @Test
+    public void testR8_Blackbox_AlreadyOccupiedLightOff() {
+        // Setup: already occupied, alarm disabled, light off
+        state.setProximityState(true);
+        state.setAlarmState(false);
+        state.setLightState(false);
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+
+        // Verify: light should turn on
+        assertTrue(evaluatedState.getLightState(), 
+                "Light should turn on when occupied with alarm disabled.");
+    }
+
+    /**
+     * R8 BLACKBOX TEST: Light already on when becoming occupied
+     * Strategy: Boundary case testing
+     * 
+     * Test that light remains on when house becomes occupied with light already on.
+     */
+    @Test
+    public void testR8_Blackbox_LightAlreadyOn() {
+        // Setup: house occupied, alarm disabled, light already on
+        state.setProximityState(true);
+        state.setAlarmState(false);
+        state.setLightState(true);
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+
+        // Verify: light should remain on
+        assertTrue(evaluatedState.getLightState(), 
+                "Light should remain on when already on with house occupied.");
+    }
+
+    /**
+     * R8 BLACKBOX TEST: Occupied with alarm enabled - no auto light
+     * Strategy: Rule interaction testing
+     * 
+     * Test that light does NOT auto-turn-on when occupied but alarm is enabled
+     * (potential intruder scenario).
+     */
+    @Test
+    public void testR8_Blackbox_OccupiedWithAlarmEnabledNoLight() {
+        // Setup: house occupied, alarm enabled, light off
+        state.setProximityState(true);
+        state.setAlarmState(true);
+        state.setLightState(false);
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+
+        // Verify: light should NOT turn on (alarm enabled = potential intruder)
+        assertFalse(evaluatedState.getLightState(), 
+                "Light should not turn on when alarm is enabled (potential intruder).");
+    }
+
+    /**
+     * R8 BLACKBOX TEST: Transition from vacant to occupied
+     * Strategy: State transition testing
+     * 
+     * Test the specific scenario of transitioning from vacant to occupied.
+     */
+    @Test
+    public void testR8_Blackbox_VacantToOccupiedTransition() {
+        // Setup: transitioning to occupied, alarm disabled, light off
+        state.setProximityState(true);  // now occupied
+        state.setAlarmState(false);
+        state.setLightState(false);
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+
+        // Verify: light turns on for legitimate user
+        assertTrue(evaluatedState.getLightState(), 
+                "Light should turn on when house becomes occupied with alarm disabled.");
+        assertTrue(evaluatedState.getProximityState(), 
+                "House should be occupied.");
+    }
+
+    // ============================================================================
+    // R10 BLACKBOX TESTS
+    // ============================================================================
+
+    /**
+     * R10 BLACKBOX TEST: Heater on, dehumidifier off
+     * Strategy: Equivalence partitioning - valid state
+     * 
+     * Test that heater and dehumidifier off together is a valid state.
+     */
+    @Test
+    public void testR10_Blackbox_HeaterOnDehumidifierOff() {
+        // Setup: cold temp requiring heat, dehumidifier off
+        state.setTempReading(60);
+        state.setTargetTempSetting(70);
+        state.setHumidifierState(false);
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+
+        // Verify: heater on, dehumidifier stays off
+        assertTrue(evaluatedState.getHeaterOnState(), 
+                "Heater should be on when temp is below target.");
+        assertFalse(evaluatedState.getHumidifierState(), 
+                "Dehumidifier should remain off.");
+    }
+
+    /**
+     * R10 BLACKBOX TEST: Neither heater nor dehumidifier needed
+     * Strategy: Equivalence partitioning - valid state
+     * 
+     * Test that both can be off when neither is needed.
+     */
+    @Test
+    public void testR10_Blackbox_BothOff() {
+        // Setup: temperature at target, no HVAC needed
+        state.setTempReading(70);
+        state.setTargetTempSetting(70);
+        state.setHeaterOnState(false);
+        state.setHumidifierState(false);
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+
+        // Verify: both should be off
+        assertFalse(evaluatedState.getHeaterOnState(), 
+                "Heater should be off when temp equals target.");
+        assertFalse(evaluatedState.getHumidifierState(), 
+                "Dehumidifier should be off.");
+    }
+
+    /**
+     * R10 BLACKBOX TEST: Temperature changes triggering heater
+     * Strategy: Boundary value analysis
+     * 
+     * Test state change when temperature drops and heater activates.
+     */
+    @Test
+    public void testR10_Blackbox_TemperatureDropActivatesHeater() {
+        // Setup: temp just below target
+        state.setTempReading(69);
+        state.setTargetTempSetting(70);
+        state.setHumidifierState(false);
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+
+        // Verify: heater activates, dehumidifier stays off
+        assertTrue(evaluatedState.getHeaterOnState(), 
+                "Heater should activate when temp drops below target.");
+        assertFalse(evaluatedState.getHumidifierState(), 
+                "Dehumidifier should remain off when heater is on.");
+    }
 }
 
 class StaticTartanStateEvaluatorUC12EquivalenceClassesTest extends StaticTartanStateEvaluatorTest {

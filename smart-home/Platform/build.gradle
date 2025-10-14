@@ -5,6 +5,7 @@ group 'Tartan'
 version '1.0-SNAPSHOT'
 apply plugin: 'java'
 apply plugin: 'application'
+apply plugin: 'jacoco'
 application {
     mainClass = 'tartan.smarthome.TartanHomeApplication'
 }
@@ -63,5 +64,61 @@ test {
     useJUnitPlatform()
     testLogging {
         showStandardStreams = true
+    }
+    finalizedBy jacocoTestReport
+}
+
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+        csv.required = false
+    }
+    
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: [
+                '**/TartanHomeApplication.class',
+                '**/TartanHomeConfiguration.class',
+                '**/TartanHomeSettings.class',
+                '**/views/**',
+                '**/db/**',
+                '**/health/**',
+                '**/auth/TartanUser.class'
+            ])
+        }))
+    }
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.80
+            }
+        }
+        
+        rule {
+            enabled = true
+            element = 'CLASS'
+            includes = ['tartan.smarthome.resources.StaticTartanStateEvaluator']
+            
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.80
+            }
+            
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                minimum = 0.80
+            }
+        }
     }
 }
