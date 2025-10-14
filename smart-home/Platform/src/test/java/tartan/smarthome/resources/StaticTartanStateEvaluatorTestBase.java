@@ -36,6 +36,18 @@ class StaticTartanStateEvaluatorTestBase {
         output.setGivenPassCode("");
         output.setAwayTimerState(false);
         output.setAlarmActiveState(false);
+
+        output.setDoorLockState(false);
+        output.setPasscodeRequiredForLock(false);
+        output.setDoorLockRequest(false);
+
+        output.setKeylessEntryEnabled(false);
+        output.setKnownDevices(List.of());
+        output.setDetectedDevices(List.of());
+
+        output.setIntruderDetected(false);
+        output.setAllClear(false);
+
         return output;
     }
 
@@ -62,6 +74,7 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
 
         // lights off
+        assertNotNull(evaluatedState.getLightState());
         assertFalse(evaluatedState.getLightState(), "Light should not be on when the house is vacant.");
     }
 
@@ -580,7 +593,7 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
     
 
     
-    // Keyless operation tests
+    // Electronic operation tests
     @Test
     public void testLockWithPasscodeRequiredIncorrectPasscode() {
            state.setDoorLockState(false); // currently unlocked
@@ -669,6 +682,43 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         assertFalse(evaluatedState.getDoorLockState(), "Door should be unlocked when authorized resident is present.");
         assertTrue(log.toString().contains("Authorized resident detected, unlocking door"), "Log should contain automatica door unlock message");
     }
+
+        /**
+     * Intruder Defense Test:
+     * -When in-home sensors detect the possible presence of an intruder, lock the door and send "possible intruder detected" messages to the access panels.
+     * -Keep the door locked until the sensors provide an "all clear" signal, at which time "all clear" messages are sent to the access panels.
+     */
+    @Test
+    public void test_intruderBreakin() {
+        state.setProximityState(false); // user is away
+        state.setDoorState(true);       // door is open
+        state.setDoorLockState(false);    // doors not locked
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+
+        assertTrue(Boolean.TRUE.equals(evaluatedState.doorLockState));
+        assertTrue(log.toString().contains("possible intruder detected"));
+    }
+
+    @Test
+    public void test_allClearLogs(){
+        state.setProximityState(false); // user is away
+        state.setDoorState(true);       // door is opened
+        state.setDoorLockState(false);    // doors not locked
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+
+        // Sanity: intruder has engaged lock
+        assertTrue(Boolean.TRUE.equals(evaluatedState.doorLockState));
+
+        // 2) Clear the trigger and raise ALL CLEAR
+        evaluatedState.setDoorState(false);  // CLOSED
+        evaluatedState.allClear = true;      // signal all clear
+        evaluator.evaluateState(evaluatedState, log);
+
+        // Must log "Door unlocked after all clear"
+        assertTrue(log.toString().contains("Door unlocked after all clear"));
+    }
 }
 
 class StaticTartanStateEvaluatorUC12EquivalenceClassesTest extends StaticTartanStateEvaluatorTestBase {
@@ -704,7 +754,7 @@ class StaticTartanStateEvaluatorUC12EquivalenceClassesTest extends StaticTartanS
     }
 }
 
-class StaticTartanStateEvaluatorUC06BlackboxTest extends StaticTartanStateEvaluatorTest {
+class StaticTartanStateEvaluatorUC06BlackboxTest extends StaticTartanStateEvaluatorTestBase {
 
     /**
      * UC06: With alarm enabled, opening the door should activate the alarm.
@@ -737,7 +787,7 @@ class StaticTartanStateEvaluatorUC06BlackboxTest extends StaticTartanStateEvalua
     }
 }
 
-class StaticTartanStateEvaluatorUC07BlackboxTest extends StaticTartanStateEvaluatorTest {
+class StaticTartanStateEvaluatorUC07BlackboxTest extends StaticTartanStateEvaluatorTestBase {
 
     /**
      * UC07: When away timer is set, system closes door, turns off light, and enables alarm.
@@ -759,7 +809,7 @@ class StaticTartanStateEvaluatorUC07BlackboxTest extends StaticTartanStateEvalua
     }
 }
 
-class StaticTartanStateEvaluatorUC13EquivalenceClassesTest extends StaticTartanStateEvaluatorTest {
+class StaticTartanStateEvaluatorUC13EquivalenceClassesTest extends StaticTartanStateEvaluatorTestBase {
 
     @Test
     public void test_AC_off_DH_off_valid() {
