@@ -41,7 +41,7 @@
 - Testing Strategy
     - ??
 
-## UC06
+## UC06 ✅
 - The IoT Controller shall activate the alarm; the door is manually
   opened while the alarm is enabled or the house is suddenly occupied while alarm is
   enabled.
@@ -49,7 +49,7 @@
     - with alarm enabled -> open door manually, ensure alarm activated
     - with alarm enabled -> set proximity, ensure alarm activated
 
-## UC07
+## UC07 ✅
 - The IoT Controller shall detect when the house has been vacant for more than a
   user-specified amount of time. Once this time period has passed the system shall
   close the door, turn off the light, and enable the alarm.
@@ -57,22 +57,22 @@
   - set user defined time to BVA values (min, min+1, mid, max-1, max)
   - ensure all effects happen after simulating time passing
 
-## UC08
+## UC08 ✅ (Tested by R13 tests)
 - The alarm must be disabled by the user in person by entering a user-defined
   passcode.
 - Testing Strategy (equivalence classes)
   - attempt disabling alarm with incorrect password, doesn't work
   - attempt disabling alarm with correct password, does work
-  - does this interact with HS05?
+  - does this interact with HS05? "In person" = cannot be remote?
 
-## UC09
+## UC09 ✅ (Tested by R8 tests)
 - The IoT Controller shall automatically turn on the light when the house becomes
   occupied.
-- Testing Strategy (equivalence classes)
-  - house unoccupied -> unoccupied, light stays off
-  - house unoccupied -> occupied, light must turn on
+- Testing Strategy (one-shot)
+  - house occupied with light off -> light must turn on
+  - nothing is said about unoccupied houses affecting the lights
 
-## UC10
+## UC10 ✅ (Tested by R16 tests)
 - The IoT Controller shall allow the user to set the house temperature. The minimum
   temperature allowed is 50 degrees Fahrenheit (10 degrees Celsius). The maximum
   temperature allowed is 80 degrees Fahrenheit (27 degrees Celsius).
