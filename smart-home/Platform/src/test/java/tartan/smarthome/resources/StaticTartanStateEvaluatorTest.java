@@ -175,4 +175,81 @@ class StaticTartanStateEvaluatorTest {
                     "81°F is out of range; value should clamp to 80°F.");
         }
     }
+
+
+    
+    // Keyless operation tests
+    @Test
+    public void testLockWithPasscodeRequiredIncorrectPasscode() {
+           state.setDoorLockState(false); // currently unlocked
+           state.setPasscodeRequiredForLock(true);
+           state.setGivenPassCode("wrong");
+           state.setAlarmPassCode("passcode");
+           state.setDoorLockRequest(true); // request lock
+
+           TartanState evaluatedState = evaluator.evaluateState(state, log);
+           assertFalse(evaluatedState.getDoorLockState(), "Door should remain unlocked with incorrect passcode.");
+           assertTrue(log.toString().contains("invalid passcode"), "Log should contain rejection message.");
+    }
+
+    @Test
+    public void testLockWithPasscodeRequiredCorrectPasscode() {
+           state.setDoorLockState(false); // currently unlocked
+           state.setPasscodeRequiredForLock(true);
+           state.setGivenPassCode("passcode");
+           state.setAlarmPassCode("passcode");
+           state.setDoorLockRequest(true); // request lock
+
+           TartanState evaluatedState = evaluator.evaluateState(state, log);
+           assertTrue(evaluatedState.getDoorLockState(), "Door should be locked with correct passcode.");
+           assertTrue(log.toString().contains("locked"), "Log should contain success message.");
+    }
+
+    @Test
+    public void testLockWithNoPasscodeRequired() {
+           state.setDoorLockState(false); // currently unlocked
+           state.setPasscodeRequiredForLock(false);
+           state.setDoorLockRequest(true); // request lock
+
+           TartanState evaluatedState = evaluator.evaluateState(state, log);
+           assertTrue(evaluatedState.getDoorLockState(), "Door should be locked when no passcode required.");
+           assertTrue(log.toString().contains("locked"), "Log should contain success message.");
+    }
+
+    @Test
+    public void testUnlockWithPasscodeRequiredIncorrectPasscode() {
+           state.setDoorLockState(true); // currently locked
+           state.setPasscodeRequiredForLock(true);
+           state.setGivenPassCode("wrong");
+           state.setAlarmPassCode("passcode");
+           state.setDoorLockRequest(false); // request unlock
+
+           TartanState evaluatedState = evaluator.evaluateState(state, log);
+           assertTrue(evaluatedState.getDoorLockState(), "Door should remain locked with incorrect passcode.");
+           assertTrue(log.toString().contains("invalid passcode"), "Log should contain rejection message.");
+    }
+
+    @Test
+    public void testUnlockWithPasscodeRequiredCorrectPasscode() {
+           state.setDoorLockState(true); // currently locked
+           state.setPasscodeRequiredForLock(true);
+           state.setGivenPassCode("passcode");
+           state.setAlarmPassCode("passcode");
+           state.setDoorLockRequest(false); // request unlock
+
+           TartanState evaluatedState = evaluator.evaluateState(state, log);
+           assertFalse(evaluatedState.getDoorLockState(), "Door should be unlocked with correct passcode.");
+           assertTrue(log.toString().contains("unlocked"), "Log should contain success message.");
+    }
+
+    @Test
+    public void testUnlockWithNoPasscodeRequired() {
+           state.setDoorLockState(true); // currently locked
+           state.setPasscodeRequiredForLock(false);
+           state.setDoorLockRequest(false); // request unlock
+
+           TartanState evaluatedState = evaluator.evaluateState(state, log);
+           assertFalse(evaluatedState.getDoorLockState(), "Door should be unlocked when no passcode required.");
+           assertTrue(log.toString().contains("unlocked"), "Log should contain success message.");
+    }
 }
