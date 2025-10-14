@@ -3,7 +3,6 @@ package tartan.smarthome.resources;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tartan.smarthome.resources.iotcontroller.IoTValues;
-import tartan.smarthome.resources.iotcontroller.IntruderDefenseController;
 
 import java.util.Hashtable;
 import java.util.Map;
@@ -35,6 +34,10 @@ class StaticTartanStateEvaluatorTest {
         state.setGivenPassCode("");
         state.setAwayTimerState(false);
         state.setAlarmActiveState(false);
+        state.setLockEngaged(false);
+        state.setIntruderDetected(false);
+        state.setAllClear(false);
+
     }
 
     /**
@@ -183,13 +186,35 @@ class StaticTartanStateEvaluatorTest {
      * -Keep the door locked until the sensors provide an "all clear" signal, at which time "all clear" messages are sent to the access panels.
      */
     @Test
-    public void test_IntruderDefenseController() {
-        IntruderDefenseController intruderDefenseController = new IntruderDefenseController();
+    public void test_intruderBreakin() {
+        state.setProximityState(false); // user is away
+        state.setDoorState(true);       // door is open
+        state.setLockEngaged(false);    // doors not locked
 
-        intruderDefenseController.enableIntruderDefense();
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
 
+        assertTrue(Boolean.TRUE.equals(state.lockEngaged));
         assertTrue(log.toString().contains("possible intruder detected"));
+    }
 
+    @Test
+    public void test_allClearLogs(){
+        state.setProximityState(false); // user is away
+        state.setDoorState(true);       // door is opened
+        state.setLockEngaged(false);    // doors not locked
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+
+        // Sanity: intruder has engaged lock
+        assertTrue(Boolean.TRUE.equals(state.lockEngaged));
+
+        // 2) Clear the trigger and raise ALL CLEAR
+        state.setDoorState(false);  // CLOSED
+        state.allClear = true;      // signal all clear
+        evaluator.evaluateState(state, log);
+
+        // Must log "all clear"
         assertTrue(log.toString().contains("all clear"));
     }
+
 }

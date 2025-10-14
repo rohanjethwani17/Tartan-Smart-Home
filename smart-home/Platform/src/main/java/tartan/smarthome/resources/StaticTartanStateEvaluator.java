@@ -27,6 +27,23 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
 
         System.out.println("Evaluating new state statically");
 
+        boolean away = Boolean.FALSE.equals(inState.proximityState);
+        boolean doorOpen = Boolean.TRUE.equals(inState.doorState);
+        boolean alarmSet = Boolean.TRUE.equals(inState.alarmState);
+
+
+        boolean closedDoorBreakIn = alarmSet && Boolean.TRUE.equals(inState.proximityState) && !doorOpen;
+
+        boolean intruderDetected = (away && (doorOpen || closedDoorBreakIn));
+
+        // if conditions meet, intruder detected
+        if (intruderDetected) {
+            if(!Boolean.TRUE.equals(inState.intruderDetected)){
+                notifyPanel(log, "possible intruder detected");
+                inState.intruderDetected = true;
+            }
+        }
+
 
         // Enforce target temperature bounds (R16)
         validateTargetTempSetting(inState, log);
@@ -63,6 +80,21 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
         determineHeaterChillerEnabling(inState, log);
         determineHvacSetting(inState, log);
         manageHvacControl(inState, log);
+
+
+        // while intruder detected, keep doors locked
+        if (Boolean.TRUE.equals(inState.intruderDetected)) {
+            inState.lockEngaged = true;
+        }
+
+        // handle all clear
+        // ASSUMPTION: doors remain locked even after "all clear" signal sent
+        if (Boolean.TRUE.equals(inState.intruderDetected) && Boolean.TRUE.equals(inState.allClear)) {
+            notifyPanel(log, "all clear");
+            inState.intruderDetected = false;
+            inState.allClear = false;       // reset the signal
+        }
+
 
         return inState;
     }
