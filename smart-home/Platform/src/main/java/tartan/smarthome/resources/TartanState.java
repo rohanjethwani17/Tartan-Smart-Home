@@ -1,8 +1,11 @@
 package tartan.smarthome.resources;
 
+
 import tartan.smarthome.resources.iotcontroller.IoTValues;
+
 import java.util.Collections;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 public class TartanState {
@@ -12,7 +15,7 @@ public class TartanState {
     Integer alarmDelay = null; // Alarm timer
     Boolean doorState = null; // the state of the door (true if open, false if closed)
     Boolean lightState = null; // the state of the light (true if on, false if off)
-    Boolean proximityState = null; // the state of the proximity sensor (true if house occupied, false if vacant)
+    Boolean proximityState = null; // the state of the proximity sensor (true of house occupied, false if vacant)
     Boolean alarmState = null; // the alarm state (true if enabled, false if disabled)
     Boolean humidifierState = null; // the humidifier state (true if on, false if off)
     Boolean heaterOnState = null; // the heater state (true if on, false if off)
@@ -22,14 +25,20 @@ public class TartanState {
     String alarmPassCode = null;
     String hvacSetting = null; // the HVAC mode setting, either Heater or Chiller
     String givenPassCode = "";
-    Boolean doorLockedState = null; // true if locked, false if unlocked
-
-    /** Empty constructor */
-    public TartanState() { }
+    Boolean doorLockState = null; // the state of the door lock (true if locked, false if unlocked)
+    Boolean passcodeRequiredForLock = null; // whether passcode is required for lock/unlock
+    Boolean doorLockRequest = null; // explicit request: true=lock, false=unlock, null=no request
+    Boolean keylessEntryEnabled = null;
+    List<String> knownDevices = null;
+    List<String> detectedDevices = null;
 
     /**
-     * Load state values from a map into this object.
+     * Empty constructor
      */
+    public TartanState(){
+    }
+
+
     public void loadFromStateMap(Map<String, Object> stateMap) {
         for (String key : stateMap.keySet()) {
             if (key.equals(IoTValues.TEMP_READING)) {
@@ -58,9 +67,8 @@ public class TartanState {
                 this.alarmPassCode = (String) stateMap.get(key);
             } else if (key.equals(IoTValues.GIVEN_PASSCODE)) {
                 this.givenPassCode = (String) stateMap.get(key);
-            } else if (key.equals(IoTValues.DOOR_LOCKED_STATE)) {
-                this.doorLockedState = (Boolean) stateMap.get(key);
             } else if (key.equals(IoTValues.AWAY_TIMER)) {
+                // This is a hack!
                 this.awayTimerState = (Boolean) stateMap.getOrDefault(key, false);
             } else if (key.equals(IoTValues.ALARM_ACTIVE)) {
                 this.alarmActiveState = (Boolean) stateMap.get(key);
@@ -82,37 +90,50 @@ public class TartanState {
 
     /**
      * Turn this object back into the legacy state map `Map< String, Object>` type
-     * @param removeNull if true, any null fields are not included in the final state map.
      */
-    public Map<String, Object> toStateMap(boolean removeNull) {
+    public Map<String, Object> toStateMap(){
         Hashtable<String, Object> output = new Hashtable<>();
-        output.put(IoTValues.DOOR_STATE, doorState);
-        output.put(IoTValues.AWAY_TIMER, awayTimerState);
-        output.put(IoTValues.LIGHT_STATE, lightState);
-        output.put(IoTValues.PROXIMITY_STATE, proximityState);
-        output.put(IoTValues.ALARM_STATE, alarmState);
-        output.put(IoTValues.HUMIDIFIER_STATE, humidifierState);
-        output.put(IoTValues.HEATER_STATE, heaterOnState);
-        output.put(IoTValues.CHILLER_STATE, chillerOnState);
-        output.put(IoTValues.ALARM_ACTIVE, alarmActiveState);
-        output.put(IoTValues.HVAC_MODE, hvacSetting);
-        output.put(IoTValues.ALARM_PASSCODE, alarmPassCode);
-        output.put(IoTValues.GIVEN_PASSCODE, givenPassCode);
-        output.put(IoTValues.TARGET_TEMP, targetTempSetting);
-        output.put(IoTValues.DOOR_LOCKED_STATE, doorLockedState);
-
-        if (removeNull) {
-            output.values().removeAll(Collections.singleton(null));
+        if(doorState != null){
+            output.put(IoTValues.DOOR_STATE, doorState);
         }
-        // https://stackoverflow.com/questions/37664374/java-how-to-remove-all-null-elements-from-a-map
+        if(awayTimerState != null){
+            output.put(IoTValues.AWAY_TIMER, awayTimerState);
+        }
+        if(lightState != null){
+            output.put(IoTValues.LIGHT_STATE, lightState);
+        }
+        if(proximityState != null){
+            output.put(IoTValues.PROXIMITY_STATE, proximityState);
+        }
+        if(alarmState != null){
+            output.put(IoTValues.ALARM_STATE, alarmState);
+        }
+        if(humidifierState != null){
+            output.put(IoTValues.HUMIDIFIER_STATE, humidifierState);
+        }
+        if(heaterOnState != null){
+            output.put(IoTValues.HEATER_STATE, heaterOnState);
+        }
+        if(chillerOnState != null){
+            output.put(IoTValues.CHILLER_STATE, chillerOnState);
+        }
+        if(alarmActiveState != null){
+            output.put(IoTValues.ALARM_ACTIVE, alarmActiveState);
+        }
+        if(hvacSetting != null){
+            output.put(IoTValues.HVAC_MODE, hvacSetting);
+        }
+        if(alarmPassCode != null){
+            output.put(IoTValues.ALARM_PASSCODE, alarmPassCode);
+        }
+        if(givenPassCode != null){
+            output.put(IoTValues.GIVEN_PASSCODE, givenPassCode);
+        }
+        if(targetTempSetting != null){
+            output.put(IoTValues.TARGET_TEMP, targetTempSetting);
+        }
+
         return output;
-    }
-    /**
-     * Turn this object back into the legacy state map `Map< String, Object>` type.
-     * null elements will be included in the map.
-     */
-    public Map<String, Object> toStateMap() {
-        return this.toStateMap(false);
     }
 
     /**
@@ -120,62 +141,186 @@ public class TartanState {
      *
      * @param fromState the state to merge values from
      */
-    public void mergeState(TartanState fromState) {
-        Map<String, Object> intermediateOverwriteState = fromState.toStateMap(true);
+    public void mergeState(TartanState fromState){
+        Map<String, Object> intermediateOverwriteState = fromState.toStateMap();
         Map<String, Object> intermediateSourceState = this.toStateMap();
         intermediateSourceState.putAll(intermediateOverwriteState);
         loadFromStateMap(intermediateSourceState);
     }
 
-    // Getters and Setters
-    public Integer getTempReading() { return tempReading; }
-    public void setTempReading(Integer tempReading) { this.tempReading = tempReading; }
+    public Integer getTempReading() {
+        return tempReading;
+    }
 
-    public Integer getTargetTempSetting() { return targetTempSetting; }
-    public void setTargetTempSetting(Integer targetTempSetting) { this.targetTempSetting = targetTempSetting; }
+    public void setTempReading(Integer tempReading) {
+        this.tempReading = tempReading;
+    }
 
-    public Integer getHumidityReading() { return humidityReading; }
-    public void setHumidityReading(Integer humidityReading) { this.humidityReading = humidityReading; }
+    public Integer getTargetTempSetting() {
+        return targetTempSetting;
+    }
 
-    public Integer getAlarmDelay() { return alarmDelay; }
-    public void setAlarmDelay(Integer alarmDelay) { this.alarmDelay = alarmDelay; }
+    public void setTargetTempSetting(Integer targetTempSetting) {
+        this.targetTempSetting = targetTempSetting;
+    }
 
-    public Boolean getDoorState() { return doorState; }
-    public void setDoorState(Boolean doorState) { this.doorState = doorState; }
+    public Integer getHumidityReading() {
+        return humidityReading;
+    }
 
-    public Boolean getLightState() { return lightState; }
-    public void setLightState(Boolean lightState) { this.lightState = lightState; }
+    public void setHumidityReading(Integer humidityReading) {
+        this.humidityReading = humidityReading;
+    }
 
-    public Boolean getProximityState() { return proximityState; }
-    public void setProximityState(Boolean proximityState) { this.proximityState = proximityState; }
+    public Integer getAlarmDelay() {
+        return alarmDelay;
+    }
 
-    public Boolean getAlarmState() { return alarmState; }
-    public void setAlarmState(Boolean alarmState) { this.alarmState = alarmState; }
+    public void setAlarmDelay(Integer alarmDelay) {
+        this.alarmDelay = alarmDelay;
+    }
 
-    public Boolean getHumidifierState() { return humidifierState; }
-    public void setHumidifierState(Boolean humidifierState) { this.humidifierState = humidifierState; }
+    public Boolean getDoorState() {
+        return doorState;
+    }
 
-    public Boolean getHeaterOnState() { return heaterOnState; }
-    public void setHeaterOnState(Boolean heaterOnState) { this.heaterOnState = heaterOnState; }
+    public void setDoorState(Boolean doorState) {
+        this.doorState = doorState;
+    }
 
-    public Boolean getChillerOnState() { return chillerOnState; }
-    public void setChillerOnState(Boolean chillerOnState) { this.chillerOnState = chillerOnState; }
+    public Boolean getLightState() {
+        return lightState;
+    }
 
-    public Boolean getAlarmActiveState() { return alarmActiveState; }
-    public void setAlarmActiveState(Boolean alarmActiveState) { this.alarmActiveState = alarmActiveState; }
+    public void setLightState(Boolean lightState) {
+        this.lightState = lightState;
+    }
 
-    public Boolean getAwayTimerState() { return awayTimerState; }
-    public void setAwayTimerState(Boolean awayTimerState) { this.awayTimerState = awayTimerState; }
+    public Boolean getProximityState() {
+        return proximityState;
+    }
 
-    public String getAlarmPassCode() { return alarmPassCode; }
-    public void setAlarmPassCode(String alarmPassCode) { this.alarmPassCode = alarmPassCode; }
+    public void setProximityState(Boolean proximityState) {
+        this.proximityState = proximityState;
+    }
 
-    public String getHvacSetting() { return hvacSetting; }
-    public void setHvacSetting(String hvacSetting) { this.hvacSetting = hvacSetting; }
+    public Boolean getAlarmState() {
+        return alarmState;
+    }
 
-    public String getGivenPassCode() { return givenPassCode; }
-    public void setGivenPassCode(String givenPassCode) { this.givenPassCode = givenPassCode; }
+    public void setAlarmState(Boolean alarmState) {
+        this.alarmState = alarmState;
+    }
 
-    public Boolean getDoorLockedState() { return doorLockedState; }
-    public void setDoorLockedState(Boolean locked) { this.doorLockedState = locked; }
+    public Boolean getHumidifierState() {
+        return humidifierState;
+    }
+
+    public void setHumidifierState(Boolean humidifierState) {
+        this.humidifierState = humidifierState;
+    }
+
+    public Boolean getHeaterOnState() {
+        return heaterOnState;
+    }
+
+    public void setHeaterOnState(Boolean heaterOnState) {
+        this.heaterOnState = heaterOnState;
+    }
+
+    public Boolean getChillerOnState() {
+        return chillerOnState;
+    }
+
+    public void setChillerOnState(Boolean chillerOnState) {
+        this.chillerOnState = chillerOnState;
+    }
+
+    public Boolean getAlarmActiveState() {
+        return alarmActiveState;
+    }
+
+    public void setAlarmActiveState(Boolean alarmActiveState) {
+        this.alarmActiveState = alarmActiveState;
+    }
+
+    public Boolean getAwayTimerState() {
+        return awayTimerState;
+    }
+
+    public void setAwayTimerState(Boolean awayTimerState) {
+        this.awayTimerState = awayTimerState;
+    }
+
+    public String getAlarmPassCode() {
+        return alarmPassCode;
+    }
+
+    public void setAlarmPassCode(String alarmPassCode) {
+        this.alarmPassCode = alarmPassCode;
+    }
+
+    public String getHvacSetting() {
+        return hvacSetting;
+    }
+
+    public void setHvacSetting(String hvacSetting) {
+        this.hvacSetting = hvacSetting;
+    }
+
+    public String getGivenPassCode() {
+        return givenPassCode;
+    }
+
+    public void setGivenPassCode(String givenPassCode) {
+        this.givenPassCode = givenPassCode;
+    }
+
+    public Boolean getDoorLockState() {
+        return doorLockState;
+    }
+
+    public void setDoorLockState(Boolean doorLockState) {
+        this.doorLockState = doorLockState;
+    }
+
+    public Boolean getPasscodeRequiredForLock() {
+        return passcodeRequiredForLock;
+    }
+
+    public void setPasscodeRequiredForLock(Boolean passcodeRequiredForLock) {
+        this.passcodeRequiredForLock = passcodeRequiredForLock;
+    }
+
+    public Boolean getDoorLockRequest() {
+        return doorLockRequest;
+    }
+
+    public void setDoorLockRequest(Boolean doorLockRequest) {
+        this.doorLockRequest = doorLockRequest;
+    }
+
+    public Boolean getKeylessEntryEnabled() {
+        return doorLockRequest;
+    }
+
+    public void setKeylessEntryEnabled(Boolean keylessEntryEnabled) {
+        this.keylessEntryEnabled = keylessEntryEnabled;
+    }
+
+    public List<String> getKnownDevices() {
+        return knownDevices;
+    }
+
+    public void setKnownDevices(List<String> knownDevices) {
+        this.knownDevices = knownDevices;
+    }
+
+      public List<String> getDetectedDevices() {
+        return detectedDevices;
+    }
+
+    public void setDetectedDevices(List<String> detectedDevices) {
+        this.detectedDevices = detectedDevices;
+    }
 }

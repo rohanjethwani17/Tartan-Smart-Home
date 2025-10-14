@@ -2,14 +2,13 @@ package tartan.smarthome.resources;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
-import java.util.Map;
 
 public class StaticTartanStateEvaluator implements TartanStateEvaluator {
     static final int TARGET_TEMP_MIN_F = 50;
     static final int TARGET_TEMP_MAX_F = 80;
 
     private String formatLogEntry(String entry) {
-        Long timeStamp = System.currentTimeMillis();
+        long timeStamp = System.currentTimeMillis();
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
         return "[" + sdf.format(new Date(timeStamp)) + "]: " + entry + "\n";
     }
@@ -24,10 +23,6 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
      */
     @Override
     public TartanState evaluateState(TartanState inState, StringBuffer log) {
-
-        System.out.println("Evaluating new state statically");
-
-
         // Enforce target temperature bounds (R16)
         validateTargetTempSetting(inState, log);
 
@@ -64,6 +59,9 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
         determineHvacSetting(inState, log);
         manageHvacControl(inState, log);
 
+        processDoorLockRequest(inState, log);
+        keylessEntry(inState, log);
+
         return inState;
     }
 
@@ -72,7 +70,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
      * @param intermediateState state of house during evaluation
      * @param log The log of state evaluations
      */
-    private void validateTargetTempSetting(TartanState intermediateState, StringBuffer log) {
+    void validateTargetTempSetting(TartanState intermediateState, StringBuffer log) {
         Integer targetTempSetting = intermediateState.targetTempSetting;
 
         if(targetTempSetting < TARGET_TEMP_MIN_F){
@@ -89,7 +87,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
      * @param intermediateState state of the house during evaluation
      * @param log The log of state evaluations
      */
-    private void validateLightProximityRules(TartanState intermediateState, StringBuffer log) {
+    void validateLightProximityRules(TartanState intermediateState, StringBuffer log) {
         Boolean lightState = intermediateState.lightState;
         Boolean proximityState = intermediateState.proximityState;
 
@@ -104,7 +102,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
      * @param intermediateState state of the house during evaluation
      * @param log The log of state evaluations
      */
-    private void validateOpenedDoorRules(TartanState intermediateState, StringBuffer log) {
+    void validateOpenedDoorRules(TartanState intermediateState, StringBuffer log) {
         Boolean alarmState = intermediateState.alarmState;
         Boolean proximityState = intermediateState.proximityState;
 
@@ -128,7 +126,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
      * @param intermediateState state of the house during evaluation
      * @param log The log of state evaluations
      */
-    private void validateClosedDoorRules(TartanState intermediateState, StringBuffer log) {
+    void validateClosedDoorRules(TartanState intermediateState, StringBuffer log) {
         Boolean alarmState = intermediateState.alarmState;
         Boolean proximityState = intermediateState.proximityState;
         // If the house is suddenly occupied this is a break-in
@@ -145,7 +143,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
      * @param intermediateState state of the house during evaluation
      * @param log The log of state evaluations
      */
-    private void invokeAwayTimerIfApplicable(TartanState intermediateState, StringBuffer log) {
+    void invokeAwayTimerIfApplicable(TartanState intermediateState, StringBuffer log) {
         Boolean awayTimerState = intermediateState.awayTimerState;
 
         if (awayTimerState){
@@ -162,7 +160,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
      * @param intermediateState state of the house during evaluation
      * @param log The log of state evaluations
      */
-    private void validateHouseNewlyOccupied(TartanState intermediateState, StringBuffer log) {
+    void validateHouseNewlyOccupied(TartanState intermediateState, StringBuffer log) {
         Boolean proximityState = intermediateState.proximityState;
         Boolean alarmState = intermediateState.alarmState;
         Boolean lightState = intermediateState.lightState;
@@ -183,7 +181,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
      * @param intermediateState state of the house during evaluation
      * @param log The log of state evaluations
      */
-    private void validateAlarmDisablingAttempt(TartanState intermediateState, StringBuffer log){
+    void validateAlarmDisablingAttempt(TartanState intermediateState, StringBuffer log){
         Boolean proximityState = intermediateState.proximityState;
         Boolean alarmActiveState = intermediateState.alarmActiveState;
         String givenPassCode = intermediateState.givenPassCode;
@@ -216,7 +214,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
      * @param intermediateState state of the house during evaluation
      * @param log The log of state evaluations
      */
-    private void determineHeaterChillerEnabling(TartanState intermediateState, StringBuffer log) {
+    void determineHeaterChillerEnabling(TartanState intermediateState, StringBuffer log) {
         Integer tempReading = intermediateState.tempReading;
         Integer targetTempSetting = intermediateState.targetTempSetting;
 
@@ -233,7 +231,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
         }
 
         // Chiller
-        if (tempReading < targetTempSetting) {
+        if (tempReading > targetTempSetting) {
             log.append(formatLogEntry(String.format(
                     "Turning on air conditioner, target temperature = %dF, current temperature = %dF",
                     targetTempSetting,
@@ -251,7 +249,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
      * @param intermediateState state of the house during evaluation
      * @param log The log of state evaluation
      */
-    private void determineHvacSetting(TartanState intermediateState, StringBuffer log) {
+    void determineHvacSetting(TartanState intermediateState, StringBuffer log) {
         Boolean chillerOnState = intermediateState.chillerOnState;
         boolean heaterOnState = intermediateState.heaterOnState;
 
@@ -263,7 +261,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
     }
 
 
-    private void manageHvacControl(TartanState intermediateState, StringBuffer log){
+    void manageHvacControl(TartanState intermediateState, StringBuffer log){
         String hvacSetting = intermediateState.hvacSetting;
         Boolean chillerOnState = intermediateState.chillerOnState;
         Boolean heaterOnState = intermediateState.heaterOnState;
@@ -291,6 +289,62 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
         } else {
             log.append(formatLogEntry("Automatically disabled dehumidifier when running heater"));
             intermediateState.humidifierState = false;
+        }
+    }
+
+    // Electronic Operation: process door lock/unlock requests
+    /**
+     * Process door lock/unlock requests from the access panel, validating passcode if required.
+     * Updates doorLockState and appends messages to the log.
+     */
+    private void processDoorLockRequest(TartanState intermediateState, StringBuffer log) {
+        if (intermediateState.getDoorLockRequest() != null) {
+            boolean requestLock = intermediateState.doorLockRequest;
+            boolean passcodeRequired = intermediateState.passcodeRequiredForLock;
+            
+            
+            boolean passcodeValid;
+            if (!passcodeRequired) {
+                passcodeValid = true;
+            } else {
+                String givenPasscode = intermediateState.givenPassCode;
+                String alarmPasscode = intermediateState.alarmPassCode;
+
+                passcodeValid = givenPasscode.equals(alarmPasscode);
+            }
+            
+
+            if (passcodeValid) {
+                intermediateState.setDoorLockState(requestLock);
+                if (requestLock) {
+                    log.append(formatLogEntry("Door locked via access panel."));
+                } else {
+                    log.append(formatLogEntry("Door unlocked via access panel."));
+                }
+            } else {
+                // Passcode required and invalid
+                log.append(formatLogEntry("Door lock/unlock failed: invalid passcode."));
+                // Do not change doorLockState
+            }
+            // Reset request after processing
+            intermediateState.setDoorLockRequest(null);
+        }
+    }
+
+    // Keyless Entry: Unlock door if authorized resident present
+    /**
+     * Automatically unlocks door if an authorized resident is nearby
+     * Updates doorLockState and appends messages to log.
+     */
+    private void keylessEntry(TartanState intermediateState, StringBuffer log) {
+        if (intermediateState.keylessEntryEnabled == null || !intermediateState.keylessEntryEnabled) return;
+
+        boolean foundMatch = intermediateState.detectedDevices.stream().anyMatch(intermediateState.knownDevices::contains);
+
+
+        if (foundMatch) {
+            intermediateState.setDoorLockState(false);
+            log.append(formatLogEntry("Authorized resident detected, unlocking door"));
         }
     }
 }

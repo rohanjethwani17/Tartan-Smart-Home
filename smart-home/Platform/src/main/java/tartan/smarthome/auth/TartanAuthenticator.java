@@ -41,7 +41,7 @@ public class TartanAuthenticator implements Authenticator<BasicCredentials, Tart
     /**
      * Authenticate the user
      * @param credentials the user login information
-     * @return the authenticated user on sucess
+     * @return the authenticated user on success
      * @throws AuthenticationException failed authentication
      */
     @Override
