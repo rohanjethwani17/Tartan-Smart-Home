@@ -8,7 +8,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
     static final int TARGET_TEMP_MAX_F = 80;
 
     private String formatLogEntry(String entry) {
-        Long timeStamp = System.currentTimeMillis();
+        long timeStamp = System.currentTimeMillis();
         SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
         return "[" + sdf.format(new Date(timeStamp)) + "]: " + entry + "\n";
     }
