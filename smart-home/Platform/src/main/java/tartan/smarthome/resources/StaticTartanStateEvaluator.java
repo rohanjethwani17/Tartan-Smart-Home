@@ -233,7 +233,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
         }
 
         // Chiller
-        if (tempReading < targetTempSetting) {
+        if (tempReading > targetTempSetting) {
             log.append(formatLogEntry(String.format(
                     "Turning on air conditioner, target temperature = %dF, current temperature = %dF",
                     targetTempSetting,
