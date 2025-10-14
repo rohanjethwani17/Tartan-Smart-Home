@@ -302,6 +302,22 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
     }
 
     /**
+     * Kills two mutants
+     * Test temperature at 60°F, which is within allowed temperatures.
+     */
+    @Test
+    public void mutationKill_Within_Allowed_Space() {
+        // Setup: set temperature to 60°F
+        state.setTargetTempSetting(60);
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+
+        // Verify: temperature should be clamped to 80°F
+        assertEquals(60, evaluatedState.getTargetTempSetting(),
+                "60°F should be allowed as it is within boundaries");
+    }
+
+    /**
      * R16: The target temperature must be between 50F and 80F.
      * Hard
      */
@@ -634,8 +650,23 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         // No manual unlock request
 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
-        assertFalse(evaluatedState.getDoorLockedState(), "Door should be unlocked when authorized resident is present.");
+        assertEquals(Boolean.FALSE, evaluatedState.getDoorLockedState(), "Door should be unlocked when authorized resident is present.");
         assertTrue(log.toString().contains("Authorized resident detected, unlocking door"), "Log should contain automatica door unlock message");
+    }
+
+    @Test
+    public void testKeylessEntryCannotUnlock() {
+        state.setKeylessEntryEnabled(true);
+        state.setDoorLockedState(true); // door is locked
+        state.setPasscodeRequiredForLock(true);
+        state.setKnownDevices(List.of("known_phone1",
+                "known_phone2", "known_phone3"));
+        state.setDetectedDevices(List.of("bad"));
+        // No manual unlock request
+
+        TartanState evaluatedState = evaluator.evaluateState(state, log);
+        assertEquals(Boolean.TRUE, evaluatedState.getDoorLockedState(), "Door should be locked when no authorized resident is present.");
+        assertFalse(log.toString().contains("Authorized resident detected, unlocking door"), "Log should not contain unlock message");
     }
 
     /**
