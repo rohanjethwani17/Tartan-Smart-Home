@@ -3,6 +3,7 @@ package tartan.smarthome.resources;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tartan.smarthome.resources.iotcontroller.IoTValues;
+import tartan.smarthome.resources.iotcontroller.IntruderDefenseController;
 
 import java.util.Hashtable;
 import java.util.Map;
@@ -174,5 +175,21 @@ class StaticTartanStateEvaluatorTest {
             assertEquals(80, evaluatedState.getTargetTempSetting(),
                     "81°F is out of range; value should clamp to 80°F.");
         }
+    }
+
+    /**
+     * Intruder Defense Test:
+     * -When in-home sensors detect the possible presence of an intruder, lock the door and send "possible intruder detected" messages to the access panels.
+     * -Keep the door locked until the sensors provide an "all clear" signal, at which time "all clear" messages are sent to the access panels.
+     */
+    @Test
+    public void test_IntruderDefenseController() {
+        IntruderDefenseController intruderDefenseController = new IntruderDefenseController();
+
+        intruderDefenseController.enableIntruderDefense();
+
+        assertTrue(log.toString().contains("possible intruder detected"));
+
+        assertTrue(log.toString().contains("all clear"));
     }
 }
