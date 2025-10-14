@@ -3,10 +3,7 @@ package tartan.smarthome.resources;
 
 import tartan.smarthome.resources.iotcontroller.IoTValues;
 
-import java.util.Collections;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class TartanState {
     Integer tempReading = null; // the current temperature
@@ -35,7 +32,7 @@ public class TartanState {
     /**
      * Empty constructor
      */
-    public TartanState(){
+    public TartanState() {
     }
 
 
@@ -79,6 +76,7 @@ public class TartanState {
     /**
      * Create a TartanState from a String->Object state map.
      * Any value not in the state map is assumed to be null
+     *
      * @param stateMap legacy style state map
      * @return TartanState with the same data
      */
@@ -91,45 +89,45 @@ public class TartanState {
     /**
      * Turn this object back into the legacy state map `Map< String, Object>` type
      */
-    public Map<String, Object> toStateMap(){
+    public Map<String, Object> toStateMap() {
         Hashtable<String, Object> output = new Hashtable<>();
-        if(doorState != null){
+        if (doorState != null) {
             output.put(IoTValues.DOOR_STATE, doorState);
         }
-        if(awayTimerState != null){
+        if (awayTimerState != null) {
             output.put(IoTValues.AWAY_TIMER, awayTimerState);
         }
-        if(lightState != null){
+        if (lightState != null) {
             output.put(IoTValues.LIGHT_STATE, lightState);
         }
-        if(proximityState != null){
+        if (proximityState != null) {
             output.put(IoTValues.PROXIMITY_STATE, proximityState);
         }
-        if(alarmState != null){
+        if (alarmState != null) {
             output.put(IoTValues.ALARM_STATE, alarmState);
         }
-        if(humidifierState != null){
+        if (humidifierState != null) {
             output.put(IoTValues.HUMIDIFIER_STATE, humidifierState);
         }
-        if(heaterOnState != null){
+        if (heaterOnState != null) {
             output.put(IoTValues.HEATER_STATE, heaterOnState);
         }
-        if(chillerOnState != null){
+        if (chillerOnState != null) {
             output.put(IoTValues.CHILLER_STATE, chillerOnState);
         }
-        if(alarmActiveState != null){
+        if (alarmActiveState != null) {
             output.put(IoTValues.ALARM_ACTIVE, alarmActiveState);
         }
-        if(hvacSetting != null){
+        if (hvacSetting != null) {
             output.put(IoTValues.HVAC_MODE, hvacSetting);
         }
-        if(alarmPassCode != null){
+        if (alarmPassCode != null) {
             output.put(IoTValues.ALARM_PASSCODE, alarmPassCode);
         }
-        if(givenPassCode != null){
+        if (givenPassCode != null) {
             output.put(IoTValues.GIVEN_PASSCODE, givenPassCode);
         }
-        if(targetTempSetting != null){
+        if (targetTempSetting != null) {
             output.put(IoTValues.TARGET_TEMP, targetTempSetting);
         }
 
@@ -141,7 +139,7 @@ public class TartanState {
      *
      * @param fromState the state to merge values from
      */
-    public void mergeState(TartanState fromState){
+    public void mergeState(TartanState fromState) {
         Map<String, Object> intermediateOverwriteState = fromState.toStateMap();
         Map<String, Object> intermediateSourceState = this.toStateMap();
         intermediateSourceState.putAll(intermediateOverwriteState);
@@ -316,11 +314,65 @@ public class TartanState {
         this.knownDevices = knownDevices;
     }
 
-      public List<String> getDetectedDevices() {
+    public List<String> getDetectedDevices() {
         return detectedDevices;
     }
 
     public void setDetectedDevices(List<String> detectedDevices) {
         this.detectedDevices = detectedDevices;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        TartanState that = (TartanState) o;
+        return Objects.equals(getTempReading(), that.getTempReading()) &&
+                Objects.equals(getTargetTempSetting(), that.getTargetTempSetting()) &&
+                Objects.equals(getHumidityReading(), that.getHumidityReading()) &&
+                Objects.equals(getAlarmDelay(), that.getAlarmDelay()) &&
+                Objects.equals(getDoorState(), that.getDoorState()) &&
+                Objects.equals(getLightState(), that.getLightState()) &&
+                Objects.equals(getProximityState(), that.getProximityState()) &&
+                Objects.equals(getAlarmState(), that.getAlarmState()) &&
+                Objects.equals(getHumidifierState(), that.getHumidifierState()) &&
+                Objects.equals(getHeaterOnState(), that.getHeaterOnState()) &&
+                Objects.equals(getChillerOnState(), that.getChillerOnState()) &&
+                Objects.equals(getAlarmActiveState(), that.getAlarmActiveState()) &&
+                Objects.equals(getAwayTimerState(), that.getAwayTimerState()) &&
+                Objects.equals(getAlarmPassCode(), that.getAlarmPassCode()) &&
+                Objects.equals(getHvacSetting(), that.getHvacSetting()) &&
+                Objects.equals(getGivenPassCode(), that.getGivenPassCode()) &&
+                Objects.equals(getDoorLockState(), that.getDoorLockState()) &&
+                Objects.equals(getPasscodeRequiredForLock(), that.getPasscodeRequiredForLock()) &&
+                Objects.equals(getDoorLockRequest(), that.getDoorLockRequest()) &&
+                Objects.equals(getKeylessEntryEnabled(), that.getKeylessEntryEnabled()) &&
+                Objects.equals(getKnownDevices(), that.getKnownDevices()) &&
+                Objects.equals(getDetectedDevices(), that.getDetectedDevices());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getTempReading(),
+                getTargetTempSetting(),
+                getHumidityReading(),
+                getAlarmDelay(),
+                getDoorState(),
+                getLightState(),
+                getProximityState(),
+                getAlarmState(),
+                getHumidifierState(),
+                getHeaterOnState(),
+                getChillerOnState(),
+                getAlarmActiveState(),
+                getAwayTimerState(),
+                getAlarmPassCode(),
+                getHvacSetting(),
+                getGivenPassCode(),
+                getDoorLockState(),
+                getPasscodeRequiredForLock(),
+                getDoorLockRequest(),
+                getKeylessEntryEnabled(),
+                getKnownDevices(),
+                getDetectedDevices());
     }
 }
