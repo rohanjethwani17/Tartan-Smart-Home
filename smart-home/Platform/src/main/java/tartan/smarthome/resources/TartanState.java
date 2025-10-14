@@ -137,7 +137,7 @@ public class TartanState {
      * @param fromState the state to merge values from
      */
     public void mergeState(TartanState fromState){
-        Map<String, Object> intermediateOverwriteState = fromState.toStateMap(true);
+        Map<String, Object> intermediateOverwriteState = fromState.toStateMap();
         Map<String, Object> intermediateSourceState = this.toStateMap();
         intermediateSourceState.putAll(intermediateOverwriteState);
         loadFromStateMap(intermediateSourceState);
