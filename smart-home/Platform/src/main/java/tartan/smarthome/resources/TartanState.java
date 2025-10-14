@@ -83,37 +83,52 @@ public class TartanState {
 
     /**
      * Turn this object back into the legacy state map `Map< String, Object>` type
-     * @param removeNull if true, any null fields are not included in the final state map.
-     */
-    public Map<String, Object> toStateMap(boolean removeNull){
-        Hashtable<String, Object> output = new Hashtable<>();
-        output.put(IoTValues.DOOR_STATE, doorState);
-        output.put(IoTValues.AWAY_TIMER, awayTimerState);
-        output.put(IoTValues.LIGHT_STATE, lightState);
-        output.put(IoTValues.PROXIMITY_STATE, proximityState);
-        output.put(IoTValues.ALARM_STATE, alarmState);
-        output.put(IoTValues.HUMIDIFIER_STATE, humidifierState);
-        output.put(IoTValues.HEATER_STATE, heaterOnState);
-        output.put(IoTValues.CHILLER_STATE, chillerOnState);
-        output.put(IoTValues.ALARM_ACTIVE, alarmActiveState);
-        output.put(IoTValues.HVAC_MODE, hvacSetting);
-        output.put(IoTValues.ALARM_PASSCODE, alarmPassCode);
-        output.put(IoTValues.GIVEN_PASSCODE, givenPassCode);
-        output.put(IoTValues.TARGET_TEMP, targetTempSetting);
-
-        if(removeNull) {
-            // https://stackoverflow.com/questions/37664374/java-how-to-remove-all-null-elements-from-a-map
-            output.values().removeAll(Collections.singleton(null));
-        }
-        return output;
-    }
-
-    /**
-     * Turn this object back into the legacy state map `Map< String, Object>` type.
-     * null elements will be included in the map.
      */
     public Map<String, Object> toStateMap(){
-        return this.toStateMap(false);
+        Hashtable<String, Object> output = new Hashtable<>();
+        if(doorState != null){
+            output.put(IoTValues.DOOR_STATE, doorState ? IoTValues.DOOR_OPEN : IoTValues.DOOR_CLOSE);
+        }
+        if(awayTimerState != null){
+            // TODO do we need IoTValues for awayTimerState?
+            output.put(IoTValues.AWAY_TIMER, awayTimerState);
+        }
+        if(lightState != null){
+            output.put(IoTValues.LIGHT_STATE, lightState ? IoTValues.LIGHT_ON : IoTValues.LIGHT_OFF);
+        }
+        if(proximityState != null){
+            // TODO we definitely need a PROXIMITY_VACANT and PROXIMITY_OCCUPIED
+            output.put(IoTValues.PROXIMITY_STATE, proximityState);
+        }
+        if(alarmState != null){
+            output.put(IoTValues.ALARM_STATE, alarmState? IoTValues.ALARM_ENABLED : IoTValues.ALARM_DISABLED);
+        }
+        if(humidifierState != null){
+            output.put(IoTValues.HUMIDIFIER_STATE, humidifierState ? IoTValues.HUMIDIFIER_ON : IoTValues.HUMIDIFIER_OFF);
+        }
+        if(heaterOnState != null){
+            output.put(IoTValues.HEATER_STATE, heaterOnState ? IoTValues.HEATER_ON : IoTValues.HEATER_OFF);
+        }
+        if(chillerOnState != null){
+            output.put(IoTValues.CHILLER_STATE, chillerOnState ? IoTValues.CHILLER_ON : IoTValues.CHILLER_OFF);
+        }
+        if(alarmActiveState != null){
+            output.put(IoTValues.ALARM_ACTIVE, alarmActiveState ? IoTValues.ALARM_ON : IoTValues.ALARM_OFF);
+        }
+        if(hvacSetting != null){
+            output.put(IoTValues.HVAC_MODE, hvacSetting);
+        }
+        if(alarmPassCode != null){
+            output.put(IoTValues.ALARM_PASSCODE, alarmPassCode);
+        }
+        if(givenPassCode != null){
+            output.put(IoTValues.GIVEN_PASSCODE, givenPassCode);
+        }
+        if(targetTempSetting != null){
+            output.put(IoTValues.TARGET_TEMP, targetTempSetting);
+        }
+
+        return output;
     }
 
     /**
