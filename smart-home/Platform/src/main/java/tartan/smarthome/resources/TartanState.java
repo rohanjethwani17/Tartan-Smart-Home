@@ -182,179 +182,201 @@ public class TartanState {
         loadFromStateMap(intermediateSourceState);
     }
 
+    @Nullable
     public Integer getTempReading() {
         return tempReading;
     }
 
-    public void setTempReading(Integer tempReading) {
+    public void setTempReading(@Nullable Integer tempReading) {
         this.tempReading = tempReading;
     }
 
+    @Nullable
     public Integer getTargetTempSetting() {
         return targetTempSetting;
     }
 
-    public void setTargetTempSetting(Integer targetTempSetting) {
+    public void setTargetTempSetting(@Nullable Integer targetTempSetting) {
         this.targetTempSetting = targetTempSetting;
     }
 
+    @Nullable
     public Integer getHumidityReading() {
         return humidityReading;
     }
 
-    public void setHumidityReading(Integer humidityReading) {
+    public void setHumidityReading(@Nullable Integer humidityReading) {
         this.humidityReading = humidityReading;
     }
 
+    @Nullable
     public Integer getAlarmDelay() {
         return alarmDelay;
     }
 
-    public void setAlarmDelay(Integer alarmDelay) {
+    public void setAlarmDelay(@Nullable Integer alarmDelay) {
         this.alarmDelay = alarmDelay;
     }
 
+    @Nullable
     public Boolean getDoorState() {
         return doorState;
     }
 
-    public void setDoorState(Boolean doorState) {
+    public void setDoorState(@Nullable Boolean doorState) {
         this.doorState = doorState;
     }
 
+    @Nullable
     public Boolean getLightState() {
         return lightState;
     }
 
-    public void setLightState(Boolean lightState) {
+    public void setLightState(@Nullable Boolean lightState) {
         this.lightState = lightState;
     }
 
+    @Nullable
     public Boolean getProximityState() {
         return proximityState;
     }
 
-    public void setProximityState(Boolean proximityState) {
+    public void setProximityState(@Nullable Boolean proximityState) {
         this.proximityState = proximityState;
     }
 
+    @Nullable
     public Boolean getAlarmState() {
         return alarmState;
     }
 
-    public void setAlarmState(Boolean alarmState) {
+    public void setAlarmState(@Nullable Boolean alarmState) {
         this.alarmState = alarmState;
     }
 
+    @Nullable
     public Boolean getHumidifierState() {
         return humidifierState;
     }
 
-    public void setHumidifierState(Boolean humidifierState) {
+    public void setHumidifierState(@Nullable Boolean humidifierState) {
         this.humidifierState = humidifierState;
     }
 
+    @Nullable
     public Boolean getHeaterOnState() {
         return heaterOnState;
     }
 
-    public void setHeaterOnState(Boolean heaterOnState) {
+    public void setHeaterOnState(@Nullable Boolean heaterOnState) {
         this.heaterOnState = heaterOnState;
     }
 
+    @Nullable
     public Boolean getChillerOnState() {
         return chillerOnState;
     }
 
-    public void setChillerOnState(Boolean chillerOnState) {
+    public void setChillerOnState(@Nullable Boolean chillerOnState) {
         this.chillerOnState = chillerOnState;
     }
 
+    @Nullable
     public Boolean getAlarmActiveState() {
         return alarmActiveState;
     }
 
-    public void setAlarmActiveState(Boolean alarmActiveState) {
+    public void setAlarmActiveState(@Nullable Boolean alarmActiveState) {
         this.alarmActiveState = alarmActiveState;
     }
 
+    @Nullable
     public Boolean getAwayTimerState() {
         return awayTimerState;
     }
 
-    public void setAwayTimerState(Boolean awayTimerState) {
+    public void setAwayTimerState(@Nullable Boolean awayTimerState) {
         this.awayTimerState = awayTimerState;
     }
 
+    @Nullable
     public String getAlarmPassCode() {
         return alarmPassCode;
     }
 
-    public void setAlarmPassCode(String alarmPassCode) {
+    public void setAlarmPassCode(@Nullable String alarmPassCode) {
         this.alarmPassCode = alarmPassCode;
     }
 
+    @Nullable
     public String getHvacSetting() {
         return hvacSetting;
     }
 
-    public void setHvacSetting(String hvacSetting) {
+    public void setHvacSetting(@Nullable String hvacSetting) {
         this.hvacSetting = hvacSetting;
     }
 
+    @Nullable
     public String getGivenPassCode() {
         return givenPassCode;
     }
 
-    public void setGivenPassCode(String givenPassCode) {
+    public void setGivenPassCode(@Nullable String givenPassCode) {
         this.givenPassCode = givenPassCode;
     }
 
+    @Nullable
     public Boolean getDoorLockState() {
         return doorLockState;
     }
 
-    public void setDoorLockState(Boolean doorLockState) {
+    public void setDoorLockState(@Nullable Boolean doorLockState) {
         this.doorLockState = doorLockState;
     }
 
+    @Nullable
     public Boolean getPasscodeRequiredForLock() {
         return passcodeRequiredForLock;
     }
 
-    public void setPasscodeRequiredForLock(Boolean passcodeRequiredForLock) {
+    public void setPasscodeRequiredForLock(@Nullable Boolean passcodeRequiredForLock) {
         this.passcodeRequiredForLock = passcodeRequiredForLock;
     }
 
+    @Nullable
     public Boolean getDoorLockRequest() {
         return doorLockRequest;
     }
 
-    public void setDoorLockRequest(Boolean doorLockRequest) {
+    public void setDoorLockRequest(@Nullable Boolean doorLockRequest) {
         this.doorLockRequest = doorLockRequest;
     }
 
+    @Nullable
     public Boolean getKeylessEntryEnabled() {
-        return doorLockRequest;
+        return keylessEntryEnabled;
     }
 
-    public void setKeylessEntryEnabled(Boolean keylessEntryEnabled) {
+    public void setKeylessEntryEnabled(@Nullable Boolean keylessEntryEnabled) {
         this.keylessEntryEnabled = keylessEntryEnabled;
     }
 
+    @Nullable
     public List<String> getKnownDevices() {
         return knownDevices;
     }
 
-    public void setKnownDevices(List<String> knownDevices) {
+    public void setKnownDevices(@Nullable List<String> knownDevices) {
         this.knownDevices = knownDevices;
     }
 
+    @Nullable
     public List<String> getDetectedDevices() {
         return detectedDevices;
     }
 
-    public void setDetectedDevices(List<String> detectedDevices) {
+    public void setDetectedDevices(@Nullable List<String> detectedDevices) {
         this.detectedDevices = detectedDevices;
     }
 
