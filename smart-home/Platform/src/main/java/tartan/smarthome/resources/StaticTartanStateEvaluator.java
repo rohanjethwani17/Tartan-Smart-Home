@@ -53,7 +53,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
             validateAlarmDisablingAttempt(inState, log);
         }
 
-        if (!inState.alarmState) {
+        if (Boolean.FALSE.equals(inState.alarmState)) {
             log.append(formatLogEntry("Alarm disabled"));
             inState.alarmActiveState = false;
         }
