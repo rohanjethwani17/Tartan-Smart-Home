@@ -70,7 +70,7 @@
   occupied.
 - Testing Strategy (one-shot)
   - house occupied with light off -> light must turn on
-  - nothing is said about unoccupied houses affecting the lights
+  - house unoccupied with light on -> light must turn off (tested by R1 tests)
 
 ## UC10 ✅ (Tested by R16 tests)
 - The IoT Controller shall allow the user to set the house temperature. The minimum

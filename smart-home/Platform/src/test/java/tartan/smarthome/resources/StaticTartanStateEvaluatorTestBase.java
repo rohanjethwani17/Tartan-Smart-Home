@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
 import java.util.List;
 
 class StaticTartanStateEvaluatorTestBase {
@@ -68,6 +67,7 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
 
         // lights off
+        assertNotNull(evaluatedState.getLightState());
         assertFalse(evaluatedState.getLightState(), "Light should not be on when the house is vacant.");
     }
 
@@ -747,7 +747,7 @@ class StaticTartanStateEvaluatorUC12EquivalenceClassesTest extends StaticTartanS
     }
 }
 
-class StaticTartanStateEvaluatorUC06BlackboxTest extends StaticTartanStateEvaluatorTest {
+class StaticTartanStateEvaluatorUC06BlackboxTest extends StaticTartanStateEvaluatorTestBase {
 
     /**
      * UC06: With alarm enabled, opening the door should activate the alarm.
@@ -780,7 +780,7 @@ class StaticTartanStateEvaluatorUC06BlackboxTest extends StaticTartanStateEvalua
     }
 }
 
-class StaticTartanStateEvaluatorUC07BlackboxTest extends StaticTartanStateEvaluatorTest {
+class StaticTartanStateEvaluatorUC07BlackboxTest extends StaticTartanStateEvaluatorTestBase {
 
     /**
      * UC07: When away timer is set, system closes door, turns off light, and enables alarm.
@@ -802,7 +802,7 @@ class StaticTartanStateEvaluatorUC07BlackboxTest extends StaticTartanStateEvalua
     }
 }
 
-class StaticTartanStateEvaluatorUC13EquivalenceClassesTest extends StaticTartanStateEvaluatorTest {
+class StaticTartanStateEvaluatorUC13EquivalenceClassesTest extends StaticTartanStateEvaluatorTestBase {
 
     @Test
     public void test_AC_off_DH_off_valid() {
