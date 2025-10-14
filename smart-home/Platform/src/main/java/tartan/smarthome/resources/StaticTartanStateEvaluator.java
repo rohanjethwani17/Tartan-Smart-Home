@@ -2,7 +2,6 @@ package tartan.smarthome.resources;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
-import java.util.Map;
 
 public class StaticTartanStateEvaluator implements TartanStateEvaluator {
     static final int TARGET_TEMP_MIN_F = 50;
@@ -26,7 +25,6 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
     public TartanState evaluateState(TartanState inState, StringBuffer log) {
 
         System.out.println("Evaluating new state statically");
-
 
         // Enforce target temperature bounds (R16)
         validateTargetTempSetting(inState, log);
@@ -63,6 +61,9 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
         determineHeaterChillerEnabling(inState, log);
         determineHvacSetting(inState, log);
         manageHvacControl(inState, log);
+
+        processDoorLockRequest(inState, log);
+        keylessEntry(inState, log);
 
         return inState;
     }
@@ -291,6 +292,62 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
         } else {
             log.append(formatLogEntry("Automatically disabled dehumidifier when running heater"));
             intermediateState.humidifierState = false;
+        }
+    }
+
+    // Electronic Operation: process door lock/unlock requests
+    /**
+     * Process door lock/unlock requests from the access panel, validating passcode if required.
+     * Updates doorLockState and appends messages to the log.
+     */
+    private void processDoorLockRequest(TartanState intermediateState, StringBuffer log) {
+        if (intermediateState.getDoorLockRequest() != null) {
+            boolean requestLock = intermediateState.doorLockRequest;
+            boolean passcodeRequired = intermediateState.passcodeRequiredForLock;
+            
+            
+            boolean passcodeValid;
+            if (!passcodeRequired) {
+                passcodeValid = true;
+            } else {
+                String givenPasscode = intermediateState.givenPassCode;
+                String alarmPasscode = intermediateState.alarmPassCode;
+
+                passcodeValid = givenPasscode.equals(alarmPasscode);
+            }
+            
+
+            if (passcodeValid) {
+                intermediateState.setDoorLockState(requestLock);
+                if (requestLock) {
+                    log.append(formatLogEntry("Door locked via access panel."));
+                } else {
+                    log.append(formatLogEntry("Door unlocked via access panel."));
+                }
+            } else {
+                // Passcode required and invalid
+                log.append(formatLogEntry("Door lock/unlock failed: invalid passcode."));
+                // Do not change doorLockState
+            }
+            // Reset request after processing
+            intermediateState.setDoorLockRequest(null);
+        }
+    }
+
+    // Keyless Entry: Unlock door if authorized resident present
+    /**
+     * Automatically unlocks door if an authorized resident is nearby
+     * Updates doorLockState and appends messages to log.
+     */
+    private void keylessEntry(TartanState intermediateState, StringBuffer log) {
+        if (intermediateState.keylessEntryEnabled == null || !intermediateState.keylessEntryEnabled) return;
+
+        boolean foundMatch = intermediateState.detectedDevices.stream().anyMatch(intermediateState.knownDevices::contains);
+
+
+        if (foundMatch) {
+            intermediateState.setDoorLockState(false);
+            log.append(formatLogEntry("Authorized resident detected, unlocking door"));
         }
     }
 }

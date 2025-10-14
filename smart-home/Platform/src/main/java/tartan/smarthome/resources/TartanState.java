@@ -5,6 +5,7 @@ import tartan.smarthome.resources.iotcontroller.IoTValues;
 
 import java.util.Collections;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 public class TartanState {
@@ -24,6 +25,12 @@ public class TartanState {
     String alarmPassCode = null;
     String hvacSetting = null; // the HVAC mode setting, either Heater or Chiller
     String givenPassCode = "";
+    Boolean doorLockState = null; // the state of the door lock (true if locked, false if unlocked)
+    Boolean passcodeRequiredForLock = null; // whether passcode is required for lock/unlock
+    Boolean doorLockRequest = null; // explicit request: true=lock, false=unlock, null=no request
+    Boolean keylessEntryEnabled = null;
+    List<String> knownDevices = null;
+    List<String> detectedDevices = null;
 
     /**
      * Empty constructor
@@ -254,5 +261,53 @@ public class TartanState {
 
     public void setGivenPassCode(String givenPassCode) {
         this.givenPassCode = givenPassCode;
+    }
+
+    public Boolean getDoorLockState() {
+        return doorLockState;
+    }
+
+    public void setDoorLockState(Boolean doorLockState) {
+        this.doorLockState = doorLockState;
+    }
+
+    public Boolean getPasscodeRequiredForLock() {
+        return passcodeRequiredForLock;
+    }
+
+    public void setPasscodeRequiredForLock(Boolean passcodeRequiredForLock) {
+        this.passcodeRequiredForLock = passcodeRequiredForLock;
+    }
+
+    public Boolean getDoorLockRequest() {
+        return doorLockRequest;
+    }
+
+    public void setDoorLockRequest(Boolean doorLockRequest) {
+        this.doorLockRequest = doorLockRequest;
+    }
+
+    public Boolean getKeylessEntryEnabled() {
+        return doorLockRequest;
+    }
+
+    public void setKeylessEntryEnabled(Boolean keylessEntryEnabled) {
+        this.keylessEntryEnabled = keylessEntryEnabled;
+    }
+
+    public List<String> getKnownDevices() {
+        return knownDevices;
+    }
+
+    public void setKnownDevices(List<String> knownDevices) {
+        this.knownDevices = knownDevices;
+    }
+
+      public List<String> getDetectedDevices() {
+        return detectedDevices;
+    }
+
+    public void setDetectedDevices(List<String> detectedDevices) {
+        this.detectedDevices = detectedDevices;
     }
 }
