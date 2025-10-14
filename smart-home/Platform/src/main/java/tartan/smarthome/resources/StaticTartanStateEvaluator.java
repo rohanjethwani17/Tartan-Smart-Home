@@ -169,6 +169,9 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
         Boolean alarmState = intermediateState.alarmState;
         Boolean lightState = intermediateState.lightState;
 
+        if(Boolean.FALSE.equals(proximityState)){
+            return;
+        }
         // else: house is occupied
         log.append(formatLogEntry("House is occupied"));
         if (Boolean.FALSE.equals(lightState) && Boolean.FALSE.equals(alarmState)) {

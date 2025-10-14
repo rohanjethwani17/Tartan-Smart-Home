@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 
-class StaticTartanStateEvaluatorTest {
+class StaticTartanStateEvaluatorTestBase {
     StaticTartanStateEvaluator evaluator;
     TartanState state;
     StringBuffer log;
@@ -38,6 +38,9 @@ class StaticTartanStateEvaluatorTest {
         log = new StringBuffer();
         state = createPlausibleTestState();
     }
+}
+
+class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase{
 
     /**
      * R1: If the house is vacant, then the light cannot be turned on.
@@ -52,6 +55,7 @@ class StaticTartanStateEvaluatorTest {
         TartanState evaluatedState = evaluator.evaluateState(state, log);
 
         // lights off
+        assertNotNull(evaluatedState.getLightState());
         assertFalse(evaluatedState.getLightState(), "Light should not be on when the house is vacant.");
     }
 
@@ -661,7 +665,7 @@ class StaticTartanStateEvaluatorTest {
     }
 }
 
-class StaticTartanStateEvaluatorUC12EquivalenceClassesTest extends StaticTartanStateEvaluatorTest {
+class StaticTartanStateEvaluatorUC12EquivalenceClassesTest extends StaticTartanStateEvaluatorTestBase {
     @Test
     public void test_hotter_target() {
         state.setTempReading(60);
@@ -694,7 +698,7 @@ class StaticTartanStateEvaluatorUC12EquivalenceClassesTest extends StaticTartanS
     }
 }
 
-class StaticTartanStateEvaluatorUC06BlackboxTest extends StaticTartanStateEvaluatorTest {
+class StaticTartanStateEvaluatorUC06BlackboxTest extends StaticTartanStateEvaluatorTestBase {
 
     /**
      * UC06: With alarm enabled, opening the door should activate the alarm.
@@ -727,7 +731,7 @@ class StaticTartanStateEvaluatorUC06BlackboxTest extends StaticTartanStateEvalua
     }
 }
 
-class StaticTartanStateEvaluatorUC07BlackboxTest extends StaticTartanStateEvaluatorTest {
+class StaticTartanStateEvaluatorUC07BlackboxTest extends StaticTartanStateEvaluatorTestBase {
 
     /**
      * UC07: When away timer is set, system closes door, turns off light, and enables alarm.
@@ -749,7 +753,7 @@ class StaticTartanStateEvaluatorUC07BlackboxTest extends StaticTartanStateEvalua
     }
 }
 
-class StaticTartanStateEvaluatorUC13EquivalenceClassesTest extends StaticTartanStateEvaluatorTest {
+class StaticTartanStateEvaluatorUC13EquivalenceClassesTest extends StaticTartanStateEvaluatorTestBase {
 
     @Test
     public void test_AC_off_DH_off_valid() {
