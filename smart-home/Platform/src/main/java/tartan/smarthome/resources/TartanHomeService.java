@@ -338,9 +338,9 @@ public class TartanHomeService {
 
         // TODO use TartanState here instead of Map<String, Object>.
         //  Maybe extract big for (String s: keys) loop into function/class?
-        Map<String, Object> state = null;
+        TartanState state = null;
         synchronized (controller) {
-            state = controller.getCurrentState().toStateMap();
+            state = controller.getCurrentState();
             for (String l : controller.getLogMessages()) {
                 LOGGER.info(l);
             }
@@ -366,78 +366,64 @@ public class TartanHomeService {
 
         // A valid state was found, so use it
 
-        Set<String> keys = state.keySet();
-        for (String key : keys) {
-            LOGGER.info("State element: " + key + "=" + state.get(key));
-            if (key.equals(IoTValues.TEMP_READING)) {
-                tartanHome.setTemperature(String.valueOf(state.get(key)));
-            } else if (key.equals(IoTValues.HUMIDITY_READING)) {
-                tartanHome.setHumidity(String.valueOf(state.get(key)));
+        if(state.getTempReading() != null){
+            tartanHome.setTemperature(String.valueOf(state.getTempReading()));
+            LOGGER.info("Home temperature updated to '{}'", state.getTempReading());
+        }
+        if(state.getHumidityReading() != null){
+            tartanHome.setHumidity(String.valueOf(state.getHumidityReading()));
+            LOGGER.info("Home humidity updated to '{}'", state.getHumidityReading());
+        }
+        if(state.getTargetTempSetting() != null){
+            tartanHome.setTargetTemp(String.valueOf(state.getTargetTempSetting()));
+            LOGGER.info("Home target temp updated to '{}'", state.getTargetTempSetting());
+        }
+        if(state.getHumidifierState() != null){
+            String newHumidifierState = state.getHumidifierState() ? TartanHomeValues.ON : TartanHomeValues.OFF;
+            tartanHome.setHumidifier(newHumidifierState);
+            LOGGER.info("Home humidifier state updated to '{}'", newHumidifierState);
+        }
+        if(state.getDoorState() != null){
+            String newDoorState = state.getDoorState() ? TartanHomeValues.OPEN : TartanHomeValues.CLOSED;
+            tartanHome.setDoor(newDoorState);
+            LOGGER.info("Home door state updated to '{}'", newDoorState);
+        }
+        if(state.getLightState() != null){
+            String newLightState = state.getLightState() ? TartanHomeValues.ON : TartanHomeValues.OFF;
+            tartanHome.setLight(newLightState);
+            LOGGER.info("Home light state updated to '{}'", newLightState);
+        }
+        if(state.getProximityState() != null){
+            String newProximityState = state.getProximityState() ? TartanHomeValues.OCCUPIED : TartanHomeValues.EMPTY;
+            tartanHome.setProximity(newProximityState);
+            LOGGER.info("Home proximity state updated to '{}'", newProximityState);
+        }
+        if(state.getAlarmState() != null){
+            String newAlarmState = state.getAlarmState() ? TartanHomeValues.ARMED : TartanHomeValues.DISARMED;
+            tartanHome.setAlarmArmed(newAlarmState);
+            LOGGER.info("Home alarm state updated to '{}'", newAlarmState);
+        }
+        if(state.getAlarmActiveState() != null){
+            String newAlarmActiveState = state.getAlarmActiveState() ? TartanHomeValues.ACTIVE : TartanHomeValues.INACTIVE;
+            tartanHome.setAlarmActive(newAlarmActiveState);
+            LOGGER.info("Home alarm active state updated to '{}'", newAlarmActiveState);
+        }
+        if(state.getHvacSetting() != null){
+            if(state.getHvacSetting().equals("Heater")){
+                tartanHome.setHvacMode(TartanHomeValues.HEAT);
+                LOGGER.info("Home HVAC mode updated to {}", TartanHomeValues.HEAT);
+            } else if (state.getHvacSetting().equals("Chiller")){
+                tartanHome.setHvacMode(TartanHomeValues.COOL);
+                LOGGER.info("Home HVAC mode updated to {}", TartanHomeValues.COOL);
             }
-            else if (key.equals(IoTValues.TARGET_TEMP)) {
-                tartanHome.setTargetTemp(String.valueOf(state.get(key)));
-            }
-            else if (key.equals(IoTValues.HUMIDIFIER_STATE)) {
-                Boolean humidifierState = (Boolean)state.get(key);
-                if (humidifierState) {
-                    tartanHome.setHumidifier(String.valueOf(TartanHomeValues.ON));
-                } else {
-                    tartanHome.setHumidifier(String.valueOf(TartanHomeValues.OFF));
-                }
-            } else if (key.equals(IoTValues.DOOR_STATE)) {
-                Boolean doorState = (Boolean)state.get(key);
-                if (doorState) {
-                    tartanHome.setDoor(TartanHomeValues.OPEN);
-                } else {
-                    tartanHome.setDoor(TartanHomeValues.CLOSED);
-                }
-            } else if (key.equals(IoTValues.LIGHT_STATE)) {
-                Boolean lightState = (Boolean)state.get(key);
-                if (lightState) {
-                    tartanHome.setLight(TartanHomeValues.ON);
-                } else {
-                    tartanHome.setLight(TartanHomeValues.OFF);
-                }
-            } else if (key.equals(IoTValues.PROXIMITY_STATE)) {
-                Boolean proxState = (Boolean)state.get(key);
-                if (proxState) {
-                    tartanHome.setProximity(TartanHomeValues.OCCUPIED);
-                } else {
-                    tartanHome.setProximity(TartanHomeValues.EMPTY);
-                }
-            } else if (key.equals(IoTValues.ALARM_STATE)) {
-                Boolean alarmState = (Boolean)state.get(key);
-                if (alarmState) {
-                    tartanHome.setAlarmArmed(TartanHomeValues.ARMED);
-                } else {
-                    tartanHome.setAlarmArmed(TartanHomeValues.DISARMED);
-                }
-            }
-            else if (key.equals(IoTValues.ALARM_ACTIVE)) {
-                Boolean alarmActiveState = (Boolean)state.get(key);
-                if (alarmActiveState) {
-                    tartanHome.setAlarmActive(TartanHomeValues.ACTIVE);
-                } else {
-                    tartanHome.setAlarmActive(TartanHomeValues.INACTIVE);
-                }
 
-            } else if (key.equals(IoTValues.HVAC_MODE)) {
-                if (state.get(key).equals("Heater")) {
-                    tartanHome.setHvacMode(TartanHomeValues.HEAT);
-                } else if (state.get(key).equals("Chiller")) {
-                    tartanHome.setHvacMode(TartanHomeValues.COOL);
-                }
-
-                // If either heat or chill is on then the hvac is on
-                String heaterState = String.valueOf(state.get(IoTValues.HEATER_STATE));
-                String chillerState = String.valueOf(state.get(IoTValues.CHILLER_STATE));
-
-                if (heaterState.equals("true") || chillerState.equals("true")) {
-                    tartanHome.setHvacState(TartanHomeValues.ON);
-
-                } else {
-                    tartanHome.setHvacState(TartanHomeValues.OFF);
-                }
+            // If either heat or chill is on then the hvac is on
+            if(state.getChillerOnState() || state.getHeaterOnState()) {
+                tartanHome.setHvacState(TartanHomeValues.ON);
+                LOGGER.info("Home HVAC state updated to {}", TartanHomeValues.ON);
+            } else {
+                tartanHome.setHvacState(TartanHomeValues.OFF);
+                LOGGER.info("Home HVAC state updated to {}", TartanHomeValues.OFF);
             }
         }
         

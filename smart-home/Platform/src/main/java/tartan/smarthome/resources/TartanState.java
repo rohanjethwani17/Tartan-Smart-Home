@@ -3,33 +3,56 @@ package tartan.smarthome.resources;
 
 import tartan.smarthome.resources.iotcontroller.IoTValues;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
 public class TartanState {
+    @Nullable
     Integer tempReading = null; // the current temperature
+    @Nullable
     Integer targetTempSetting = null; // the user-desired temperature setting
+    @Nullable
     Integer humidityReading = null; // the current humidity
+    @Nullable
     Integer alarmDelay = null; // Alarm timer
+    @Nullable
     Boolean doorState = null; // the state of the door (true if open, false if closed)
+    @Nullable
     Boolean lightState = null; // the state of the light (true if on, false if off)
+    @Nullable
     Boolean proximityState = null; // the state of the proximity sensor (true of house occupied, false if vacant)
+    @Nullable
     Boolean alarmState = null; // the alarm state (true if enabled, false if disabled)
+    @Nullable
     Boolean humidifierState = null; // the humidifier state (true if on, false if off)
+    @Nullable
     Boolean heaterOnState = null; // the heater state (true if on, false if off)
+    @Nullable
     Boolean chillerOnState = null; // the chiller state (true if on, false if off)
+    @Nullable
     Boolean alarmActiveState = null; // the alarm active state (true if alarm sounding, false if alarm not sounding)
+    @Nullable
     Boolean awayTimerState = false;  // assume that the away timer did not trigger this evaluation
+    @Nullable
     String alarmPassCode = null;
+    @Nullable
     String hvacSetting = null; // the HVAC mode setting, either Heater or Chiller
+    @Nullable
     String givenPassCode = "";
+    @Nullable
     Boolean doorLockState = null; // the state of the door lock (true if locked, false if unlocked)
+    @Nullable
     Boolean passcodeRequiredForLock = null; // whether passcode is required for lock/unlock
+    @Nullable
     Boolean doorLockRequest = null; // explicit request: true=lock, false=unlock, null=no request
+    @Nullable
     Boolean keylessEntryEnabled = null;
+    @Nullable
     List<String> knownDevices = null;
+    @Nullable
     List<String> detectedDevices = null;
 
     /**
