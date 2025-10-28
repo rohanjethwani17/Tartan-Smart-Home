@@ -21,16 +21,19 @@ houses:
     # and the super secret passcode to disable the alarm
     alarmPasscode: stop
 
-    # Next house
-  - name: cmu
-    address: localhost
-    port: 5051
+    passcodeRequiredForLock: true
 
-    user: admin
-    password: 5678
-    targetTemp: 70
-    alarmDelay: 30
-    alarmPasscode: quit
+    # Next house
+  # - name: cmu
+  #   address: localhost
+  #   port: 5051
+
+  #   user: admin
+  #   password: 5678
+  #   targetTemp: 70
+  #   alarmDelay: 30
+  #   alarmPasscode: quit
+  #   passcodeRequiredForLock: true
 
 # how many seconds between database snapshots
 historyTimer: 5

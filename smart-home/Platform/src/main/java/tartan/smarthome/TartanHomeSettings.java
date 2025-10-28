@@ -4,7 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hibernate.validator.constraints.NotEmpty;
 
 /**
- * This is Jackson-compatible a configuration class for the initial configuration setting in the primiary
+ * This is Jackson-compatible a configuration class for the initial
+ * configuration setting in the primiary
  * YAML confguration file. See that file for definitions
  */
 public class TartanHomeSettings {
@@ -40,6 +41,18 @@ public class TartanHomeSettings {
     @NotEmpty
     @JsonProperty
     private String alarmPasscode;
+
+    @NotEmpty
+    @JsonProperty
+    private String passcodeRequiredForLock;
+
+    public String getPasscodeRequiredForLock() {
+        return passcodeRequiredForLock;
+    }
+
+    public void setPasscodeRequiredForLock(String passcodeRequiredForLock) {
+        this.passcodeRequiredForLock = passcodeRequiredForLock;
+    }
 
     public String getTargetTemp() {
         return targetTemp;
@@ -89,13 +102,19 @@ public class TartanHomeSettings {
         this.password = password;
     }
 
-    public String getName() { return name; }
+    public String getName() {
+        return name;
+    }
 
     public void setName(String name) {
         this.name = name;
     }
 
-    public String getAlarmPasscode() { return alarmPasscode;  }
+    public String getAlarmPasscode() {
+        return alarmPasscode;
+    }
 
-    public void setAlarmPasscode(String alarmPasscode) { this.alarmPasscode = alarmPasscode;  }
+    public void setAlarmPasscode(String alarmPasscode) {
+        this.alarmPasscode = alarmPasscode;
+    }
 }
