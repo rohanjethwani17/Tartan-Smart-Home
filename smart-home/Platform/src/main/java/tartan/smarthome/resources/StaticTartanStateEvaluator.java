@@ -374,11 +374,11 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
     private void keylessEntry(TartanState intermediateState, StringBuffer log) {
         if (intermediateState.keylessEntryEnabled == null || !intermediateState.keylessEntryEnabled)
             return;
-        if (intermediateState.detectedDevices == null || intermediateState.knownDevices == null)
+        if (intermediateState.detectedDevices == null || intermediateState.authorizedDevices == null)
             return;
 
         boolean foundMatch = intermediateState.detectedDevices.stream()
-                .anyMatch(intermediateState.knownDevices::contains);
+                .anyMatch(intermediateState.authorizedDevices::contains);
 
         if (foundMatch) {
             intermediateState.setDoorLockedState(false);

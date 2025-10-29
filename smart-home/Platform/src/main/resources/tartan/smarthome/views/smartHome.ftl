@@ -23,9 +23,19 @@ See -->
                 var hvacMode = $('#hvacMode').val();
                 var doorLocked = '${tartanHome.doorLocked}';
                 var doorLockRequest = (doorLocked != "locked") ? "unlock" : "lock";
+                var detectedDevicesInput = $('#detectedDevices').val();
+                var detectedDevicesArray = detectedDevicesInput
+                    .split(',')              
+                    .map(function(item) {
+                        return item.trim();  
+                    })
+                    .filter(function(item) {
+                        return item.length > 0;
+                    });
 
                 return JSON.stringify({"door":door,"light":light,"targetTemp":targetTemp,"humidifier":humidifier,"alarmArmed":armAlarm,"alarmDelay":alarmDelay,"alarmPasscode":passcode, "doorLocked":doorLocked,
-                "doorLockRequest": doorLockRequest});
+                "doorLockRequest": doorLockRequest, 
+                "detectedDevices": detectedDevicesArray});
             }
 
             $("#lock_button").click(function() {
@@ -220,6 +230,17 @@ div {
         <button id="lock_button">Lock/unlock</button>
     </p>
     <hr>
+    <h3>Keyless Entry</h3>
+    <p>
+    <#if tartanHome.keylessEntryEnabled == true>
+        <strong><font color="green">Enabled</font></strong>
+        <br>
+        <label for="detectedDevices">Detected Devices (comma-separated):</label>
+        <input id="detectedDevices" type="text" placeholder="e.g. device4, device5" />
+    <#else>
+        <strong><font color="red">Disabled</font></strong>
+    </#if>
+    </p>
     <h3> Event log</h3>
     <textarea id="log" rows="15" cols="150">
     <#list tartanHome.eventLog as i>

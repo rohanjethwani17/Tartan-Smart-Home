@@ -643,7 +643,7 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
     public void testKeylessEntryAuthorizedUnlock() {
         state.setKeylessEntryEnabled(true);
         state.setDoorLockedState(true); // door is locked
-        state.setKnownDevices(List.of("known_phone1",
+        state.setAuthorizedDevices(List.of("known_phone1",
                 "known_phone2", "known_phone3"));
         state.setDetectedDevices(List.of("known_phone2"));
         // No manual unlock request
@@ -660,7 +660,7 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         state.setKeylessEntryEnabled(true);
         state.setDoorLockedState(true); // door is locked
         state.setPasscodeRequiredForLock(true);
-        state.setKnownDevices(List.of("known_phone1",
+        state.setAuthorizedDevices(List.of("known_phone1",
                 "known_phone2", "known_phone3"));
         state.setDetectedDevices(List.of("bad"));
         // No manual unlock request

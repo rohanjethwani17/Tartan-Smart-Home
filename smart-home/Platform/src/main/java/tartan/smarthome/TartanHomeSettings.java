@@ -1,6 +1,10 @@
 package tartan.smarthome;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hibernate.validator.constraints.NotEmpty;
 
 /**
@@ -45,6 +49,29 @@ public class TartanHomeSettings {
     @NotEmpty
     @JsonProperty
     private Boolean passcodeRequiredForLock;
+
+    @NotEmpty
+    @JsonProperty
+    private Boolean keylessEntryEnabled;
+
+    @JsonProperty
+    private List<String> authorizedDevices = new ArrayList<>();
+
+    public List<String> getAuthorizedDevices() {
+        return authorizedDevices;
+    }
+
+    public void setAuthorizedDevices(List<String> authorizedDevices) {
+        this.authorizedDevices = authorizedDevices;
+    }
+
+    public Boolean getKeylessEntryEnabled() {
+        return keylessEntryEnabled;
+    }
+
+    public void setKeylessEntryEnabled(Boolean keylessEntryEnabled) {
+        this.keylessEntryEnabled = keylessEntryEnabled;
+    }
 
     public Boolean getPasscodeRequiredForLock() {
         return passcodeRequiredForLock;

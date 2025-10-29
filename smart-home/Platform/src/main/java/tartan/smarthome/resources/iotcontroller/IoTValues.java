@@ -25,6 +25,9 @@ public abstract class IoTValues {
     public static final String DOOR_LOCKED_STATE = "DLS";
     public static final String PASSCODE_REQUIRED_FOR_LOCK = "PRFL";
     public static final String DOOR_LOCK_REQUEST = "DLR";
+    public static final String KEYLESS_ENTRY_ENABLED = "KEE";
+    public static final String AUTHORIZED_DEVICES = "AD";
+    public static final String DETECTED_DEVICES = "DD";
 
     // protocol control values
     public static final String PARAM_DELIM = ";";
