@@ -91,8 +91,8 @@ public class IoTConnectManager {
             newStateVector.add(IoTValues.HEATER_STATE + IoTValues.PARAM_EQ + heaterStateString);
         }
         if (state.getDoorLockedState() != null) {
-            String doorLockedStateString = state.getDoorLockedState() ? "1" : "0";
-            newStateVector.add("doorLockState" + IoTValues.PARAM_EQ + doorLockedStateString);
+            String doorLockedStateString = state.getDoorLockedState() ? IoTValues.DOOR_LOCKED : IoTValues.DOOR_UNLOCKED;
+            newStateVector.add(IoTValues.DOOR_LOCKED_STATE + IoTValues.PARAM_EQ + doorLockedStateString);
         }
 
         StringBuffer newState = new StringBuffer();
@@ -194,7 +194,7 @@ public class IoTConnectManager {
                 } else {
                     state.setHvacSetting("Chiller");
                 }
-            } else if (data[0].equals("doorLockState")) {
+            } else if (data[0].equals(IoTValues.DOOR_LOCKED_STATE)) {
                 if (val == 1) {
                     state.setDoorLockedState(true);
                     state.setDoorLockRequest(true);

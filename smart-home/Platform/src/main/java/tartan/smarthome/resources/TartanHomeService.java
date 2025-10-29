@@ -564,9 +564,9 @@ public class TartanHomeService {
 
         if (tartanHome.getDoorLocked() != null) {
             if (tartanHome.getDoorLocked().equals("locked")) {
-                state.put("doorLockState", true);
+                state.put(IoTValues.DOOR_LOCKED_STATE, true);
             } else {
-                state.put("doorLockState", false);
+                state.put(IoTValues.DOOR_LOCKED_STATE, false);
             }
         }
 

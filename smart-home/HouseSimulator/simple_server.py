@@ -83,7 +83,7 @@ class HouseState(object):
          elif k == "HM":
             if v == "1": self.__hvac_mode = HEATER
             else: self.__hvac_mode = CHILLER
-         elif k == "doorLockState":
+         elif k == "DLS":  # door locked state
             if v == "1": self.__door_lock_state = True
             else: self.__door_lock_state = False
 
@@ -146,7 +146,7 @@ class HouseState(object):
       '''
       Handle get state requests
       '''
-      return "TR={0};HR={1};DS={2};LS={3};PS={4};AS={5};AA={6};HES={7};CHS={8};HM={9};HUS={10};doorLockState={11}".format(self.get_temperature(),
+      return "TR={0};HR={1};DS={2};LS={3};PS={4};AS={5};AA={6};HES={7};CHS={8};HM={9};HUS={10};DLS={11}".format(self.get_temperature(),
                                                                                                self.get_humidity(),
                                                                                                self.get_door(),
                                                                                                self.get_light(),
