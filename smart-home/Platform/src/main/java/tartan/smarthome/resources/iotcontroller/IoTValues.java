@@ -2,7 +2,7 @@ package tartan.smarthome.resources.iotcontroller;
 
 /**
  * Constant values used in the house
- *
+ * <p>
  * Project: LG Exec Ed Program
  * Copyright: Copyright (c) 2015 Jeffrey S. Gennari
  * Versions:
@@ -22,60 +22,59 @@ public abstract class IoTValues {
     public static final String ALARM_ACTIVE = "AA";
     public static final String HEATER_STATE = "HES";
     public static final String CHILLER_STATE = "CHS";
-   
     // protocol control values
     public static final String PARAM_DELIM = ";";
     public static final String MSG_DELIM = ":";
     public static final String PARAM_EQ = "=";
     public static final String MSG_END = ".";
-
     // target temperature
     public static final String TARGET_TEMP = "TT";
-
+    //
     public static final String DOOR_CLOSE = "0";
     public static final String DOOR_OPEN = "1";
-
+    //
     public static final String LIGHT_ON = "1";
     public static final String LIGHT_OFF = "0";
-
+    //
     public static final String HUMIDIFIER_ON = "1";
     public static final String HUMIDIFIER_OFF = "0";
-
-    public static final String ALARM_ENABLED  = "1";
+    //
+    public static final String ALARM_ENABLED = "1";
     public static final String ALARM_DISABLED = "0";
-
+    //
     public static final String ALARM_ON = "1";
     public static final String ALARM_OFF = "0";
-
+    //
     public static final String HEATER_ON = "1";
     public static final String HEATER_OFF = "0";
-
+    //
     public static final String CHILLER_ON = "1";
     public static final String CHILLER_OFF = "0";
-
+    //
     public static final String OK = "OK";
-
+    //
     public static final String ALARM_DELAY = "ALARM_DELAY";
     public static final String ALARM_PASSCODE = "ALARM_PASSCODE";
     public static final String GIVEN_PASSCODE = "GIVEN_PASSCODE";
-
+    //
     public static final String GET_STATE = "GS";
     public static final String SET_STATE = "SS";
     public static final String STATE_UPDATE = "SU";
-
+    //
     public static final String SETTINGS_FILE = "settings.txt";
     public static final String USERS_DB = "users.txt";
-	public static final String AWAY_TIMER = "AW";
-
+    public static final String AWAY_TIMER = "AW";
+    // door locking related
     public static final String DOOR_LOCK_STATE = "doorLockState";
     public static final String PASSCODE_REQUIRED_FOR_LOCK = "passcodeRequiredForLock";
     public static final String DOOR_LOCK_REQUEST = "doorLockRequest";
     public static final String KEYLESS_ENTRY_ENABLED = "keylessEntryEnabled";
-
+    // auto-unlock related
     public static final String KNOWN_DEVICES = "knownDevices";
     public static final String DETECTED_DEVICES = "detectedDevices";
-
+    // Intruder related
     public static final String INTRUDER_DETECTED = "intruderDetected";
     public static final String ALL_CLEAR = "allClear";
+    private IoTValues() {/* intentionally empty */}
 
 }

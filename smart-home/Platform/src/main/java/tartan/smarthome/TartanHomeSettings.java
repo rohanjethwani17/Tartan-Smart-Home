@@ -1,7 +1,7 @@
 package tartan.smarthome;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hibernate.validator.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 
 /**
  * This is Jackson-compatible a configuration class for the initial configuration setting in the primiary
@@ -89,13 +89,19 @@ public class TartanHomeSettings {
         this.password = password;
     }
 
-    public String getName() { return name; }
+    public String getName() {
+        return name;
+    }
 
     public void setName(String name) {
         this.name = name;
     }
 
-    public String getAlarmPasscode() { return alarmPasscode;  }
+    public String getAlarmPasscode() {
+        return alarmPasscode;
+    }
 
-    public void setAlarmPasscode(String alarmPasscode) { this.alarmPasscode = alarmPasscode;  }
+    public void setAlarmPasscode(String alarmPasscode) {
+        this.alarmPasscode = alarmPasscode;
+    }
 }

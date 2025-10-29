@@ -1,47 +1,39 @@
 package tartan.smarthome.resources.iotcontroller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
 /**
  * A connection to an IoT-enabled house. This class handles the network connection to the house
- *
+ * <p>
  * Project: LG Exec Ed Program
  * Copyright: 2015 Jeffrey S. Gennari
  * Versions:
  * 1.0 November 2015 - initial version
  */
 public class IoTConnection {
+    private static final Logger LOGGER = LoggerFactory.getLogger(IoTConnection.class);
     private Boolean isConnected = false;
-
-    /** connection settings */
+    /**
+     * connection settings
+     */
     private String address = null;
     private Integer port = 5050; // the default port for the house
 
-    /** The connection is private so it can be controlled */
-    private Socket houseSocket=null;
-    private BufferedWriter out=null;
+    /**
+     * The connection is private so it can be controlled
+     */
+    private Socket houseSocket = null;
+    private BufferedWriter out = null;
     private BufferedReader in = null;
 
     /**
-     * Get the house address
-     * @return the address
-     */
-    public String getAddress() {
-        return address;
-    }
-
-    /**
-     * Get the house port
-     * @return the port
-     */
-    public Integer getPort() {
-        return port;
-    }
-
-    /**
      * Get an existing connection, or make a new one
+     *
      * @param addr the house address
      * @return the established connection or null
      */
@@ -52,7 +44,26 @@ public class IoTConnection {
     }
 
     /**
+     * Get the house address
+     *
+     * @return the address
+     */
+    public String getAddress() {
+        return address;
+    }
+
+    /**
+     * Get the house port
+     *
+     * @return the port
+     */
+    public Integer getPort() {
+        return port;
+    }
+
+    /**
      * Get connection state
+     *
      * @return true if connected, false otherwise
      */
     public Boolean isConnected() {
@@ -61,6 +72,7 @@ public class IoTConnection {
 
     /**
      * Send a message to the house and get a response
+     *
      * @param msg the message to send
      * @return the response
      */
@@ -73,7 +85,7 @@ public class IoTConnection {
             return in.readLine();
 
         } catch (IOException ioe) {
-            //ioe.printStackTrace();
+            LOGGER.error("House @ {}:{} | Error sending message: {}", this.address, this.port, ioe.toString());
         }
         return null;
     }
@@ -82,13 +94,11 @@ public class IoTConnection {
      * Disconnect from the house
      */
     public void disconnect() {
-        if (houseSocket!=null) {
-            if (houseSocket.isConnected()) {
-                try {
-                    houseSocket.close();
-                } catch (IOException e) {
-
-                }
+        if (houseSocket != null && houseSocket.isConnected()) {
+            try {
+                houseSocket.close();
+            } catch (IOException e) {
+                LOGGER.error("House @ {}:{} | Error disconnecting: {}", this.address, this.port, e.toString());
             }
         }
         isConnected = false;
@@ -96,6 +106,7 @@ public class IoTConnection {
 
     /**
      * Connect to the house
+     *
      * @return true if connection successful, false otherwise
      */
     public Boolean connect() {
@@ -104,12 +115,12 @@ public class IoTConnection {
             houseSocket = new Socket(this.address, this.port);
 
             out = new BufferedWriter(new OutputStreamWriter(houseSocket.getOutputStream()));
-            in = new BufferedReader(new InputStreamReader( houseSocket.getInputStream()));
+            in = new BufferedReader(new InputStreamReader(houseSocket.getInputStream()));
 
         } catch (UnknownHostException uhe) {
-            System.err.println("Unknown host: " + address);
+            LOGGER.error("Unknown host: {}", address);
             return false;
-        } catch (IOException ioe){
+        } catch (IOException ioe) {
             return false;
         }
         isConnected = true;

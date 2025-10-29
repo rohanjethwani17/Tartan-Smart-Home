@@ -1,23 +1,28 @@
 package tartan.smarthome.resources.iotcontroller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tartan.smarthome.resources.TartanState;
 
-import java.util.*;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
 /**
  * Manages connection to the IoT house
- *
+ * <p>
  * Project: LG Exec Ed Program
  * Copyright: Copyright (c) 2015 Jeffrey S. Gennari
  * Versions:
  * 1.0 November 2015 - initial version
  */
 public class IoTConnectManager {
+    private static final Logger LOGGER = LoggerFactory.getLogger(IoTConnectManager.class);
     // Connection to the house
     private IoTConnection connection;
 
     /**
      * Set up the connection manager with a connection
+     *
      * @param conn the (established) connection
      */
     public IoTConnectManager(IoTConnection conn) {
@@ -33,11 +38,12 @@ public class IoTConnectManager {
 
     /**
      * Get the state from the house
+     *
      * @return the new state of things
      */
     public synchronized TartanState getState() {
-
-        System.out.println("Requesting state");
+        
+        LOGGER.info("Requesting state");
 
         synchronized (connection) {
             String update = connection.sendMessageToHouse(IoTValues.GET_STATE + IoTValues.MSG_END);
@@ -50,9 +56,9 @@ public class IoTConnectManager {
     }
 
 
-
     /**
      * Send a state change request to the house
+     *
      * @param state the new state
      * @return true if the state was accepted; false otherwise
      */
@@ -60,40 +66,40 @@ public class IoTConnectManager {
 
         Vector<String> newStateVector = new Vector<>();
 
-        if(state.getDoorState() != null){
+        if (state.getDoorState() != null) {
             String doorStateString = state.getDoorState() ? IoTValues.DOOR_OPEN : IoTValues.DOOR_CLOSE;
             newStateVector.add(IoTValues.DOOR_STATE + IoTValues.PARAM_EQ + doorStateString);
         }
-        if(state.getLightState() != null){
+        if (state.getLightState() != null) {
             String lightStateString = state.getLightState() ? IoTValues.LIGHT_ON : IoTValues.LIGHT_OFF;
             newStateVector.add(IoTValues.LIGHT_STATE + IoTValues.PARAM_EQ + lightStateString);
         }
-        if(state.getAlarmState() != null){
-            String alarmStateString = state.getAlarmState()? IoTValues.ALARM_ENABLED : IoTValues.ALARM_DISABLED;
+        if (state.getAlarmState() != null) {
+            String alarmStateString = state.getAlarmState() ? IoTValues.ALARM_ENABLED : IoTValues.ALARM_DISABLED;
             newStateVector.add(IoTValues.ALARM_STATE + IoTValues.PARAM_EQ + alarmStateString);
         }
-        if(state.getAlarmActiveState() != null){
+        if (state.getAlarmActiveState() != null) {
             String alarmActiveStateString = state.getAlarmActiveState() ? IoTValues.ALARM_ON : IoTValues.ALARM_OFF;
             newStateVector.add(IoTValues.ALARM_ACTIVE + IoTValues.PARAM_EQ + alarmActiveStateString);
         }
-        if(state.getHumidifierState() != null){
+        if (state.getHumidifierState() != null) {
             String humidifierStateString = state.getHumidifierState() ? IoTValues.HUMIDIFIER_ON : IoTValues.HUMIDIFIER_OFF;
             newStateVector.add(IoTValues.HUMIDIFIER_STATE + IoTValues.PARAM_EQ + humidifierStateString);
         }
-        if(state.getChillerOnState() != null){
+        if (state.getChillerOnState() != null) {
             String chillerStateString = state.getChillerOnState() ? IoTValues.CHILLER_ON : IoTValues.CHILLER_OFF;
             newStateVector.add(IoTValues.CHILLER_STATE + IoTValues.PARAM_EQ + chillerStateString);
         }
-        if(state.getHeaterOnState() != null){
+        if (state.getHeaterOnState() != null) {
             String heaterStateString = state.getHeaterOnState() ? IoTValues.HEATER_ON : IoTValues.HEATER_OFF;
             newStateVector.add(IoTValues.HEATER_STATE + IoTValues.PARAM_EQ + heaterStateString);
         }
 
         StringBuffer newState = new StringBuffer();
         // merge the newStateVector into the newState buffer by separating entries with IoTValues.PARAM_DELIM
-        for(int i=0; i<newStateVector.size(); i++){
+        for (int i = 0; i < newStateVector.size(); i++) {
             newState.append(newStateVector.get(i));
-            if(i < newStateVector.size() - 1) {
+            if (i < newStateVector.size() - 1) {
                 newState.append(IoTValues.PARAM_DELIM);
             }
         }
@@ -117,6 +123,7 @@ public class IoTConnectManager {
 
     /**
      * Process the new state reported by the house
+     *
      * @param stateUpdateMsg the new state message
      * @return the new state
      */
@@ -146,10 +153,10 @@ public class IoTConnectManager {
             return null;
         }
 
-        if (String.valueOf(body.charAt(body.length()-1)).equals(IoTValues.MSG_END)) {
+        if (String.valueOf(body.charAt(body.length() - 1)).equals(IoTValues.MSG_END)) {
             body = body.substring(0, body.length() - 1);
         }
-        if (body==null) {
+        if (body == null) {
             return null;
         }
         StringTokenizer pt = new StringTokenizer(body, IoTValues.PARAM_DELIM);
@@ -166,7 +173,7 @@ public class IoTConnectManager {
                 state.setAlarmState(val == 1);
             } else if (data[0].equals(IoTValues.DOOR_STATE)) {
                 state.setDoorState(val == 1);
-            }  else if (data[0].equals(IoTValues.HUMIDIFIER_STATE)) {
+            } else if (data[0].equals(IoTValues.HUMIDIFIER_STATE)) {
                 state.setHumidifierState(val == 1);
             } else if (data[0].equals(IoTValues.PROXIMITY_STATE)) {
                 state.setProximityState(val == 1);
@@ -193,10 +200,11 @@ public class IoTConnectManager {
 
     /**
      * Get the connected state
+     *
      * @return true if connected, false otherwise
      */
     public Boolean isConnected() {
-        if (connection!=null) {
+        if (connection != null) {
             return connection.isConnected();
         }
         return false;
