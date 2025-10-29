@@ -32,7 +32,7 @@ class StaticTartanStateEvaluatorTestBase {
         output.setDoorLockRequest(false);
 
         output.setKeylessEntryEnabled(false);
-        output.setKnownDevices(List.of());
+        output.setAuthorizedDevices(List.of());
         output.setDetectedDevices(List.of());
 
         output.setIntruderDetected(false);

@@ -21,6 +21,13 @@ houses:
     # and the super secret passcode to disable the alarm
     alarmPasscode: stop
 
+    passcodeRequiredForLock: true
+
+    authorizedDevices:
+      - device1
+      - device2
+      - device3
+
     # Next house
   - name: cmu
     address: localhost
@@ -31,6 +38,8 @@ houses:
     targetTemp: 70
     alarmDelay: 30
     alarmPasscode: quit
+    passcodeRequiredForLock: false
+    keylessEntryEnabled: false
 
 # how many seconds between database snapshots
 historyTimer: 5

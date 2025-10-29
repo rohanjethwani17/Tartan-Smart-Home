@@ -28,6 +28,7 @@ class HouseState(object):
       self.__temperature = 65
       self.__humidity = 90
       self.__hvac_mode = HEATER
+      self.__door_lock_state = False
 
       self.__param = ";"
       self.__end = "."
@@ -82,6 +83,14 @@ class HouseState(object):
          elif k == "HM":
             if v == "1": self.__hvac_mode = HEATER
             else: self.__hvac_mode = CHILLER
+         elif k == "DLS":  # door locked state
+            if v == "1": self.__door_lock_state = True
+            else: self.__door_lock_state = False
+
+   def set_door_lock_state(self, d): self.__door_lock_state = d
+   def get_door_lock_state(self): 
+      if self.__door_lock_state: return "1"
+      return "0"
 
    # Getters and setters for house properties
    def get_temperature(self): return self.__temperature
@@ -137,7 +146,7 @@ class HouseState(object):
       '''
       Handle get state requests
       '''
-      return "TR={0};HR={1};DS={2};LS={3};PS={4};AS={5};AA={6};HES={7};CHS={8};HM={9};HUS={10}".format(self.get_temperature(),
+      return "TR={0};HR={1};DS={2};LS={3};PS={4};AS={5};AA={6};HES={7};CHS={8};HM={9};HUS={10};DLS={11}".format(self.get_temperature(),
                                                                                                self.get_humidity(),
                                                                                                self.get_door(),
                                                                                                self.get_light(),
@@ -147,7 +156,8 @@ class HouseState(object):
                                                                                                self.get_heater_state(),
                                                                                                self.get_chiller_state(),
                                                                                                self.get_hvac_mode(),
-                                                                                               self.get_dehumidifier())
+                                                                                               self.get_dehumidifier(),
+                                                                                               self.get_door_lock_state())
 house = HouseState()
 
 class UserThread(threading.Thread):
