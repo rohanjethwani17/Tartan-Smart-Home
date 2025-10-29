@@ -336,8 +336,6 @@ public class TartanHomeService {
         tartanHome.setEventLog(controller.getLogMessages());
         tartanHome.setAuthenticated(String.valueOf(this.authenticated));
 
-        // TODO use TartanState here instead of Map<String, Object>.
-        //  Maybe extract big for (String s: keys) loop into function/class?
         TartanState state = null;
         synchronized (controller) {
             state = controller.getCurrentState();
