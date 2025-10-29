@@ -48,7 +48,7 @@ public class TartanState {
     @Nullable
     Boolean keylessEntryEnabled = null;
     @Nullable
-    List<String> knownDevices = null;
+    List<String> authorizedDevices = null;
     @Nullable
     List<String> detectedDevices = null;
 
@@ -103,12 +103,12 @@ public class TartanState {
                 this.passcodeRequiredForLock = (Boolean) stateMap.get(IoTValues.PASSCODE_REQUIRED_FOR_LOCK);
             } else if (key.equals(IoTValues.DOOR_LOCK_REQUEST)) {
                 this.doorLockRequest = (Boolean) stateMap.get(IoTValues.DOOR_LOCK_REQUEST);
-            } else if (key.equals("keylessEntryEnabled")) {
-                this.keylessEntryEnabled = (Boolean) stateMap.get("keylessEntryEnabled");
-            } else if (key.equals("knownDevices")) {
-                this.knownDevices = (List) stateMap.get("knownDevices");
-            } else if (key.equals("detectedDevices")) {
-                this.detectedDevices = (List) stateMap.get("detectedDevices");
+            } else if (key.equals(IoTValues.KEYLESS_ENTRY_ENABLED)) {
+                this.keylessEntryEnabled = (Boolean) stateMap.get(IoTValues.KEYLESS_ENTRY_ENABLED);
+            } else if (key.equals(IoTValues.AUTHORIZED_DEVICES)) {
+                this.authorizedDevices = (List) stateMap.get(IoTValues.AUTHORIZED_DEVICES);
+            } else if (key.equals(IoTValues.DETECTED_DEVICES)) {
+                this.detectedDevices = (List) stateMap.get(IoTValues.DETECTED_DEVICES);
             } else if (key.equals("intruderDetected")) {
                 this.intruderDetected = (Boolean) stateMap.get("intruderDetected");
             } else if (key.equals("allClear")) {
@@ -193,13 +193,13 @@ public class TartanState {
             output.put(IoTValues.DOOR_LOCK_REQUEST, doorLockRequest);
         }
         if (keylessEntryEnabled != null) {
-            output.put("keylessEntryEnabled", keylessEntryEnabled);
+            output.put(IoTValues.KEYLESS_ENTRY_ENABLED, keylessEntryEnabled);
         }
-        if (knownDevices != null) {
-            output.put("knownDevices", knownDevices);
+        if (authorizedDevices != null) {
+            output.put(IoTValues.AUTHORIZED_DEVICES, authorizedDevices);
         }
         if (detectedDevices != null) {
-            output.put("detectedDevices", detectedDevices);
+            output.put(IoTValues.DETECTED_DEVICES, detectedDevices);
         }
         if (intruderDetected != null) {
             output.put("intruderDetected", intruderDetected);
@@ -414,12 +414,12 @@ public class TartanState {
     }
 
     @Nullable
-    public List<String> getKnownDevices() {
-        return knownDevices;
+    public List<String> getAuthorizedDevices() {
+        return authorizedDevices;
     }
 
-    public void setKnownDevices(@Nullable List<String> knownDevices) {
-        this.knownDevices = knownDevices;
+    public void setAuthorizedDevices(@Nullable List<String> authorizedDevices) {
+        this.authorizedDevices = authorizedDevices;
     }
 
     @Nullable
@@ -464,7 +464,7 @@ public class TartanState {
                 Objects.equals(getPasscodeRequiredForLock(), that.getPasscodeRequiredForLock()) &&
                 Objects.equals(getDoorLockRequest(), that.getDoorLockRequest()) &&
                 Objects.equals(getKeylessEntryEnabled(), that.getKeylessEntryEnabled()) &&
-                Objects.equals(getKnownDevices(), that.getKnownDevices()) &&
+                Objects.equals(getAuthorizedDevices(), that.getAuthorizedDevices()) &&
                 Objects.equals(getDetectedDevices(), that.getDetectedDevices())
                 && Objects.equals(getIntruderDetected(), that.getIntruderDetected())
                 && Objects.equals(getAllClear(), that.getAllClear());
@@ -492,7 +492,7 @@ public class TartanState {
                 getPasscodeRequiredForLock(),
                 getDoorLockRequest(),
                 getKeylessEntryEnabled(),
-                getKnownDevices(),
+                getAuthorizedDevices(),
                 getDetectedDevices(),
                 getIntruderDetected(),
                 getAllClear());
@@ -521,7 +521,7 @@ public class TartanState {
                 ", passcodeRequiredForLock=" + passcodeRequiredForLock +
                 ", doorLockRequest=" + doorLockRequest +
                 ", keylessEntryEnabled=" + keylessEntryEnabled +
-                ", knownDevices=" + knownDevices +
+                ", authorizedDevices=" + authorizedDevices +
                 ", detectedDevices=" + detectedDevices +
                 ", intruderDetected=" + intruderDetected +
                 ", allClear=" + allClear +

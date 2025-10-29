@@ -13,3 +13,4 @@ dist/
 /gradle
 /gradlew
 /gradlew.bat
+bin/

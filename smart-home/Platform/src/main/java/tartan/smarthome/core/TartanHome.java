@@ -1,6 +1,8 @@
 package tartan.smarthome.core;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -87,10 +89,43 @@ public class TartanHome {
     @JsonProperty
     private Boolean passcodeRequiredForLock;
 
+    @JsonProperty
+    private Boolean keylessEntryEnabled;
+
+    @JsonProperty
+    private List<String> authorizedDevices;
+
+    @JsonProperty
+    private List<String> detectedDevices;
+
     /**
      * Empty constructor needed by Jackson deserialization
      */
     public TartanHome() {
+    }
+
+    public List<String> getDetectedDevices() {
+        return detectedDevices;
+    }
+
+    public void setDetectedDevices(List<String> detectedDevices) {
+        this.detectedDevices = detectedDevices;
+    }
+
+    public List<String> getAuthorizedDevices() {
+        return authorizedDevices;
+    }
+
+    public void setAuthorizedDevices(List<String> authorizedDevices) {
+        this.authorizedDevices = authorizedDevices;
+    }
+
+    public Boolean getKeylessEntryEnabled() {
+        return keylessEntryEnabled;
+    }
+
+    public void setKeylessEntryEnabled(Boolean keylessEntryEnabled) {
+        this.keylessEntryEnabled = keylessEntryEnabled;
     }
 
     public Boolean getPasscodeRequiredForLock() {

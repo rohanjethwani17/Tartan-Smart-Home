@@ -12,6 +12,7 @@ import tartan.smarthome.core.TartanHomeValues;
 import tartan.smarthome.db.HomeDAO;
 
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,6 +39,8 @@ public class TartanHomeService {
     private String user;
     private String password;
     private Boolean passcodeRequiredForLock;
+    private Boolean keylessEntryEnabled;
+    private List<String> authorizedDevices;
 
     // status parameters
     private HomeDAO homeDAO;
@@ -76,6 +79,8 @@ public class TartanHomeService {
         this.alarmDelay = settings.getAlarmDelay();
         this.alarmPasscode = settings.getAlarmPasscode();
         this.passcodeRequiredForLock = settings.getPasscodeRequiredForLock();
+        this.keylessEntryEnabled = settings.getKeylessEntryEnabled();
+        this.authorizedDevices = settings.getAuthorizedDevices();
 
         this.historyTimer = historyTimer * 1000;
         this.logHistory = true;
@@ -91,6 +96,9 @@ public class TartanHomeService {
         userSettings.setTargetTempSetting(Integer.parseInt(this.targetTemp));
         userSettings.setAlarmPassCode(this.alarmPasscode);
         userSettings.setPasscodeRequiredForLock(this.passcodeRequiredForLock);
+        userSettings.setKeylessEntryEnabled(this.keylessEntryEnabled);
+        userSettings.setAuthorizedDevices(authorizedDevices);
+
         controller.updateSettings(userSettings);
 
         LOGGER.info("House " + this.name + " configured");
@@ -371,6 +379,8 @@ public class TartanHomeService {
         tartanHome.setAlarmDelay(this.alarmDelay);
 
         tartanHome.setPasscodeRequiredForLock(this.passcodeRequiredForLock);
+        tartanHome.setKeylessEntryEnabled(this.keylessEntryEnabled);
+        tartanHome.setAuthorizedDevices(this.authorizedDevices);
 
         tartanHome.setEventLog(controller.getLogMessages());
         tartanHome.setAuthenticated(String.valueOf(this.authenticated));
@@ -480,6 +490,9 @@ public class TartanHomeService {
                 tartanHome.setDoorLockRequest("unlock");
             }
         }
+        if (state.getDetectedDevices() != null) {
+            tartanHome.setDetectedDevices(state.getDetectedDevices());
+        }
 
         return tartanHome;
     }
@@ -570,6 +583,10 @@ public class TartanHomeService {
             } else {
                 state.put(IoTValues.DOOR_LOCK_REQUEST, false);
             }
+        }
+
+        if (tartanHome.getDetectedDevices() != null) {
+            state.put(IoTValues.DETECTED_DEVICES, tartanHome.getDetectedDevices());
         }
 
         for (Map.Entry<String, Object> e : state.entrySet()) {
