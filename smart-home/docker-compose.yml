@@ -1,9 +1,9 @@
 version: '3'
 services:
-  # house-cmu: 
-  #   build: HouseSimulator/
-  #   ports:
-  #    - "5051:5050"
+  house-cmu: 
+    build: HouseSimulator/
+    ports:
+     - "5051:5050"
   house-mse: 
     build: HouseSimulator/
     ports:
@@ -14,7 +14,7 @@ services:
       no_cache: true
     depends_on:
      - "mysql-container"
-    #  - "house-cmu"
+     - "house-cmu"
      - "house-mse"
     ports:
      - "8080:8080"
