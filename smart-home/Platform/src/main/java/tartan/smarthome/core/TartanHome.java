@@ -79,7 +79,9 @@ public class TartanHome {
     /**
      * Empty constructor needed by Jackson deserialization
      */
-    public TartanHome() {  }
+    public TartanHome() {
+        // Empty constructor needed by Jackson deserialization
+    }
 
 
     /**
