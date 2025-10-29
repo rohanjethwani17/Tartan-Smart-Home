@@ -66,6 +66,16 @@ public abstract class IoTValues {
     public static final String SETTINGS_FILE = "settings.txt";
     public static final String USERS_DB = "users.txt";
 	public static final String AWAY_TIMER = "AW";
-    public static final String DOOR_LOCKED_STATE = "DOOR_LOCKED_STATE";
-    ;
+
+    public static final String DOOR_LOCK_STATE = "doorLockState";
+    public static final String PASSCODE_REQUIRED_FOR_LOCK = "passcodeRequiredForLock";
+    public static final String DOOR_LOCK_REQUEST = "doorLockRequest";
+    public static final String KEYLESS_ENTRY_ENABLED = "keylessEntryEnabled";
+
+    public static final String KNOWN_DEVICES = "knownDevices";
+    public static final String DETECTED_DEVICES = "detectedDevices";
+
+    public static final String INTRUDER_DETECTED = "intruderDetected";
+    public static final String ALL_CLEAR = "allClear";
+
 }
