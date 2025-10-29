@@ -24,16 +24,16 @@ houses:
     passcodeRequiredForLock: true
 
     # Next house
-  # - name: cmu
-  #   address: localhost
-  #   port: 5051
+  - name: cmu
+    address: localhost
+    port: 5051
 
-  #   user: admin
-  #   password: 5678
-  #   targetTemp: 70
-  #   alarmDelay: 30
-  #   alarmPasscode: quit
-  #   passcodeRequiredForLock: true
+    user: admin
+    password: 5678
+    targetTemp: 70
+    alarmDelay: 30
+    alarmPasscode: quit
+    passcodeRequiredForLock: true
 
 # how many seconds between database snapshots
 historyTimer: 5
