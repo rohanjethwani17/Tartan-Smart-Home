@@ -23,6 +23,8 @@ public abstract class IoTValues {
     public static final String HEATER_STATE = "HES";
     public static final String CHILLER_STATE = "CHS";
     public static final String DOOR_LOCKED_STATE = "DLS";
+    public static final String PASSCODE_REQUIRED_FOR_LOCK = "PRFL";
+    public static final String DOOR_LOCK_REQUEST = "DLR";
 
     // protocol control values
     public static final String PARAM_DELIM = ";";

@@ -538,9 +538,9 @@ public class TartanHomeService {
 
         if (tartanHome.getPasscodeRequiredForLock() != null) {
             if (tartanHome.getPasscodeRequiredForLock() == "true") {
-                state.put("passcodeRequiredForLock", true);
+                state.put(IoTValues.PASSCODE_REQUIRED_FOR_LOCK, true);
             } else {
-                state.put("passcodeRequiredForLock", false);
+                state.put(IoTValues.PASSCODE_REQUIRED_FOR_LOCK, false);
 
             }
         }
@@ -572,9 +572,9 @@ public class TartanHomeService {
 
         if (tartanHome.getDoorLockRequest() != null) {
             if (tartanHome.getDoorLockRequest().equals("lock")) {
-                state.put("doorLockRequest", true);
+                state.put(IoTValues.DOOR_LOCK_REQUEST, true);
             } else {
-                state.put("doorLockRequest", false);
+                state.put(IoTValues.DOOR_LOCK_REQUEST, false);
             }
         }
 
