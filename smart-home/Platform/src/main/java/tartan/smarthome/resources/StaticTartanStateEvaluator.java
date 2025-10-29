@@ -52,10 +52,6 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
             validateAlarmDisablingAttempt(inState, log);
         }
 
-        if (Boolean.FALSE.equals(inState.alarmState)) {
-            log.append(formatLogEntry("Alarm disabled"));
-            inState.alarmActiveState = false;
-        }
 
         determineHeaterChillerEnabling(inState, log);
         determineHvacSetting(inState, log);

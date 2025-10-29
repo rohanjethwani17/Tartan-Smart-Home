@@ -19,19 +19,19 @@ See -->
                 var targetTemp = $('#targetTemp').val();
                 var humidifier = $('#humidifier').val();
                 var armAlarm = $('#armAlarm').val();
-                var passcode = $('#alarmPasscode').val() || $('#doorPasscode').val();
+                var passcode = $('#alarmPasscode').val()?.trim() || $('#doorPasscode').val()?.trim() || undefined;
                 var hvacMode = $('#hvacMode').val();
                 var doorLocked = '${tartanHome.doorLocked}';
                 var doorLockRequest = (doorLocked != "locked") ? "unlock" : "lock";
                 var detectedDevicesInput = $('#detectedDevices').val();
                 var detectedDevicesArray = detectedDevicesInput
-                    .split(',')              
+                    ?.split(',')              
                     .map(function(item) {
                         return item.trim();  
                     })
                     .filter(function(item) {
                         return item.length > 0;
-                    });
+                    }) || [];
 
                 return JSON.stringify({"door":door,"light":light,"targetTemp":targetTemp,"humidifier":humidifier,"alarmArmed":armAlarm,"alarmDelay":alarmDelay,"alarmPasscode":passcode, "doorLocked":doorLocked,
                 "doorLockRequest": doorLockRequest, 
