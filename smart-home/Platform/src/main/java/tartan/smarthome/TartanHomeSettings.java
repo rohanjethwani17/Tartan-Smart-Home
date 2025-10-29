@@ -44,13 +44,13 @@ public class TartanHomeSettings {
 
     @NotEmpty
     @JsonProperty
-    private String passcodeRequiredForLock;
+    private Boolean passcodeRequiredForLock;
 
-    public String getPasscodeRequiredForLock() {
+    public Boolean getPasscodeRequiredForLock() {
         return passcodeRequiredForLock;
     }
 
-    public void setPasscodeRequiredForLock(String passcodeRequiredForLock) {
+    public void setPasscodeRequiredForLock(Boolean passcodeRequiredForLock) {
         this.passcodeRequiredForLock = passcodeRequiredForLock;
     }
 

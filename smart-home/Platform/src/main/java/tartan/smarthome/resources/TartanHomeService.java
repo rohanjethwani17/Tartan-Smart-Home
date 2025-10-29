@@ -37,7 +37,7 @@ public class TartanHomeService {
     private String targetTemp;
     private String user;
     private String password;
-    private String passcodeRequiredForLock;
+    private Boolean passcodeRequiredForLock;
 
     // status parameters
     private HomeDAO homeDAO;
@@ -90,11 +90,7 @@ public class TartanHomeService {
         userSettings.setAlarmDelay(Integer.parseInt(this.alarmDelay));
         userSettings.setTargetTempSetting(Integer.parseInt(this.targetTemp));
         userSettings.setAlarmPassCode(this.alarmPasscode);
-        if (this.passcodeRequiredForLock == "true") {
-            userSettings.setPasscodeRequiredForLock(true);
-        } else {
-            userSettings.setPasscodeRequiredForLock(false);
-        }
+        userSettings.setPasscodeRequiredForLock(this.passcodeRequiredForLock);
         controller.updateSettings(userSettings);
 
         LOGGER.info("House " + this.name + " configured");
@@ -537,12 +533,10 @@ public class TartanHomeService {
         }
 
         if (tartanHome.getPasscodeRequiredForLock() != null) {
-            if (tartanHome.getPasscodeRequiredForLock() == "true") {
-                state.put(IoTValues.PASSCODE_REQUIRED_FOR_LOCK, true);
-            } else {
-                state.put(IoTValues.PASSCODE_REQUIRED_FOR_LOCK, false);
+            Boolean passcodeRequired = tartanHome.getPasscodeRequiredForLock();
 
-            }
+            state.put(IoTValues.PASSCODE_REQUIRED_FOR_LOCK, passcodeRequired);
+
         }
 
         if (tartanHome.getHvacMode() != null) {

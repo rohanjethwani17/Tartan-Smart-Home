@@ -85,7 +85,7 @@ public class TartanHome {
     private String doorLockRequest;
 
     @JsonProperty
-    private String passcodeRequiredForLock;
+    private Boolean passcodeRequiredForLock;
 
     /**
      * Empty constructor needed by Jackson deserialization
@@ -93,11 +93,11 @@ public class TartanHome {
     public TartanHome() {
     }
 
-    public String getPasscodeRequiredForLock() {
+    public Boolean getPasscodeRequiredForLock() {
         return passcodeRequiredForLock;
     }
 
-    public void setPasscodeRequiredForLock(String passcodeRequiredForLock) {
+    public void setPasscodeRequiredForLock(Boolean passcodeRequiredForLock) {
         this.passcodeRequiredForLock = passcodeRequiredForLock;
     }
 

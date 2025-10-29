@@ -214,7 +214,7 @@ div {
         </#if>
     </p>
     <p>
-        <#if tartanHome.passcodeRequiredForLock == "true">
+        <#if tartanHome.passcodeRequiredForLock == true>
             <label for="doorPasscode">Door passcode: </label><input id="doorPasscode" type="text" />
         </#if>
         <button id="lock_button">Lock/unlock</button>
