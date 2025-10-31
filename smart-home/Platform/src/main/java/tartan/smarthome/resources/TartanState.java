@@ -4,6 +4,7 @@ import tartan.smarthome.resources.iotcontroller.IoTValues;
 
 import javax.annotation.Nullable;
 
+import java.time.LocalTime;
 import java.util.*;
 
 public class TartanState {
@@ -58,6 +59,11 @@ public class TartanState {
     @Nullable
     Boolean allClear = null;
 
+    // NightlockController
+    @Nullable
+    LocalTime nightStart = null;
+    LocalTime nightEnd = null;
+
     /**
      * Empty constructor
      */
@@ -109,10 +115,14 @@ public class TartanState {
                 this.authorizedDevices = (List) stateMap.get(IoTValues.AUTHORIZED_DEVICES);
             } else if (key.equals(IoTValues.DETECTED_DEVICES)) {
                 this.detectedDevices = (List) stateMap.get(IoTValues.DETECTED_DEVICES);
-            } else if (key.equals("intruderDetected")) {
-                this.intruderDetected = (Boolean) stateMap.get("intruderDetected");
-            } else if (key.equals("allClear")) {
-                this.allClear = (Boolean) stateMap.get("allClear");
+            } else if (key.equals(IoTValues.INTRUDER_STATE)) {
+                this.intruderDetected = (Boolean) stateMap.get(IoTValues.INTRUDER_STATE);
+            } else if (key.equals(IoTValues.ALL_CLEAR_STATE)) {
+                this.allClear = (Boolean) stateMap.get(IoTValues.ALL_CLEAR_STATE);
+            } else if (key.equals(IoTValues.NIGHT_LOCK_START)) {
+                this.nightStart = (LocalTime) stateMap.get(IoTValues.NIGHT_LOCK_START);
+            } else if (key.equals(IoTValues.NIGHT_LOCK_END)) {
+                this.nightEnd = (LocalTime) stateMap.get(IoTValues.NIGHT_LOCK_END);
             }
         }
     }
@@ -202,11 +212,18 @@ public class TartanState {
             output.put(IoTValues.DETECTED_DEVICES, detectedDevices);
         }
         if (intruderDetected != null) {
-            output.put("intruderDetected", intruderDetected);
+            output.put(IoTValues.INTRUDER_STATE, intruderDetected);
         }
         if (allClear != null) {
-            output.put("allClear", allClear);
+            output.put(IoTValues.ALL_CLEAR_STATE, allClear);
         }
+        if (nightStart != null) {
+            output.put(IoTValues.NIGHT_LOCK_START, nightStart);
+        }
+        if (nightEnd != null) {
+            output.put(IoTValues.NIGHT_LOCK_END, nightEnd);
+        }
+
         // TODO Door lock state inside IoTValues and others
 
         return output;
@@ -222,6 +239,24 @@ public class TartanState {
         Map<String, Object> intermediateSourceState = this.toStateMap();
         intermediateSourceState.putAll(intermediateOverwriteState);
         loadFromStateMap(intermediateSourceState);
+    }
+
+    @Nullable
+    public LocalTime getNightStart() {
+        return nightStart;
+    }
+
+    public void setNightStart(@Nullable LocalTime nightStart) {
+        this.nightStart = nightStart;
+    }
+
+    @Nullable
+    public LocalTime getNightEnd() {
+        return nightEnd;
+    }
+
+    public void setNightEnd(@Nullable LocalTime nightEnd) {
+        this.nightEnd = nightEnd;
     }
 
     @Nullable
@@ -467,7 +502,11 @@ public class TartanState {
                 Objects.equals(getAuthorizedDevices(), that.getAuthorizedDevices()) &&
                 Objects.equals(getDetectedDevices(), that.getDetectedDevices())
                 && Objects.equals(getIntruderDetected(), that.getIntruderDetected())
-                && Objects.equals(getAllClear(), that.getAllClear());
+                && Objects.equals(getAllClear(), that.getAllClear())
+                && Objects.equals(getIntruderDetected(), that.getIntruderDetected())
+                && Objects.equals(getAllClear(), that.getAllClear())
+                && Objects.equals(getNightStart(), that.getNightStart())
+                && Objects.equals(getNightEnd(), that.getNightEnd());
     }
 
     @Override
@@ -495,7 +534,9 @@ public class TartanState {
                 getAuthorizedDevices(),
                 getDetectedDevices(),
                 getIntruderDetected(),
-                getAllClear());
+                getAllClear(),
+                getNightStart(),
+                getNightEnd());
     }
 
     @Override
@@ -525,6 +566,8 @@ public class TartanState {
                 ", detectedDevices=" + detectedDevices +
                 ", intruderDetected=" + intruderDetected +
                 ", allClear=" + allClear +
+                ", nightStart=" + nightStart.toString() +
+                ", nightEnd=" + nightEnd.toString() +
                 '}';
     }
 }

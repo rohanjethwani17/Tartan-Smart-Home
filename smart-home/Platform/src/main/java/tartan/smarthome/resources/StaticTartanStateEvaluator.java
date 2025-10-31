@@ -2,6 +2,9 @@ package tartan.smarthome.resources;
 
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import java.time.LocalTime;
+
+import tartan.smarthome.resources.iotcontroller.NightlockController;
 
 public class StaticTartanStateEvaluator implements TartanStateEvaluator {
     static final int TARGET_TEMP_MIN_F = 50;
@@ -24,13 +27,12 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
     @Override
     public TartanState evaluateState(TartanState inState, StringBuffer log) {
 
-        detectIntruder(inState, log);
-
-        // Enforce target temperature bounds (R16)
-        validateTargetTempSetting(inState, log);
-
-        // Ensure light can only be activated if the user is home
-        validateLightProximityRules(inState, log);
+        // set the alarm
+        if (Boolean.TRUE.equals(inState.alarmState)) {
+            log.append(formatLogEntry("Alarm enabled"));
+        } else { // attempt to disable alarm
+            validateAlarmDisablingAttempt(inState, log);
+        }
 
         if (Boolean.TRUE.equals(inState.doorState)) {
             // if the door is open
@@ -39,19 +41,17 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
             validateClosedDoorRules(inState, log);
         }
 
+        // Enforce target temperature bounds (R16)
+        validateTargetTempSetting(inState, log);
+
+        // Ensure light can only be activated if the user is home
+        validateLightProximityRules(inState, log);
+
         // Auto lock the house
         invokeAwayTimerIfApplicable(inState, log);
 
         // the user has arrived
         validateHouseNewlyOccupied(inState, log);
-
-        // set the alarm
-        if (Boolean.TRUE.equals(inState.alarmState)) {
-            log.append(formatLogEntry("Alarm enabled"));
-        } else { // attempt to disable alarm
-            validateAlarmDisablingAttempt(inState, log);
-        }
-
 
         determineHeaterChillerEnabling(inState, log);
         determineHvacSetting(inState, log);
@@ -61,6 +61,11 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
         keylessEntry(inState, log);
 
         processIntruder(inState, log);
+
+        NightlockController nightlock = new NightlockController(inState, log);
+        nightlock.enableNightLock(inState.nightStart, inState.nightEnd);
+        nightlock.checkAndApplyNightLock(LocalTime.now());
+
         return inState;
     }
 
@@ -119,6 +124,8 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
             if (Boolean.TRUE.equals(alarmState)) {
                 // door open, nobody's home, and the alarm is set - sound alarm
                 log.append(formatLogEntry("Break in detected: Activating alarm"));
+                notifyPanel(log, "possible intruder detected");
+                intermediateState.intruderDetected = true;
                 intermediateState.alarmActiveState = true;
             } else {
                 // house vacant, close the door
@@ -143,6 +150,8 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
         // If the house is suddenly occupied this is a break-in
         if (Boolean.TRUE.equals(alarmState) && Boolean.TRUE.equals(proximityState)) {
             log.append(formatLogEntry("Break in detected: Activating alarm"));
+            notifyPanel(log, "possible intruder detected");
+            intermediateState.intruderDetected = true;
             intermediateState.alarmActiveState = true;
         } else {
             log.append(formatLogEntry("Closed door"));
@@ -326,8 +335,13 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
      * Updates doorLockState and appends messages to the log.
      */
     private void processDoorLockRequest(TartanState intermediateState, StringBuffer log) {
+
         Boolean requestLock = intermediateState.getDoorLockRequest();
         if (requestLock != null && requestLock != intermediateState.getDoorLockedState()) {
+            if (Boolean.TRUE.equals(intermediateState.intruderDetected)) {
+                log.append(formatLogEntry("electronic operation ignored due to intruder"));
+                return;
+            }
             boolean passcodeRequired = Boolean.TRUE.equals(intermediateState.passcodeRequiredForLock);
 
             boolean passcodeValid;
@@ -370,6 +384,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
     private void keylessEntry(TartanState intermediateState, StringBuffer log) {
         if (intermediateState.keylessEntryEnabled == null || !intermediateState.keylessEntryEnabled)
             return;
+
         if (intermediateState.detectedDevices == null || intermediateState.authorizedDevices == null)
             return;
 
@@ -377,33 +392,19 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
                 .anyMatch(intermediateState.authorizedDevices::contains);
 
         if (foundMatch) {
+            if (Boolean.TRUE.equals(intermediateState.intruderDetected)) {
+                log.append(formatLogEntry("Keyless entry ignored due to intruder"));
+                return;
+            }
             intermediateState.setDoorLockedState(false);
             log.append(formatLogEntry("Authorized resident detected, unlocking door"));
-        }
-    }
-
-    private void detectIntruder(TartanState intermediateState, StringBuffer log) {
-        boolean away = Boolean.FALSE.equals(intermediateState.proximityState);
-        boolean doorOpen = Boolean.TRUE.equals(intermediateState.doorState);
-        boolean alarmSet = Boolean.TRUE.equals(intermediateState.alarmState);
-
-        // Intruder detection: away and door open, or alarm set and someone present (not
-        // away) and door closed
-        boolean closedDoorBreakIn = alarmSet && Boolean.TRUE.equals(intermediateState.proximityState) && !doorOpen;
-        boolean intruderDetected = (away && doorOpen) || closedDoorBreakIn;
-
-        // if conditions meet, intruder detected
-        if (intruderDetected) {
-            if (!Boolean.TRUE.equals(intermediateState.intruderDetected)) {
-                notifyPanel(log, "possible intruder detected");
-                intermediateState.intruderDetected = true;
-            }
         }
     }
 
     private void processIntruder(TartanState intermediateState, StringBuffer log) {
         // while intruder detected, keep doors locked
         if (Boolean.TRUE.equals(intermediateState.intruderDetected)) {
+            intermediateState.doorState = false;
             intermediateState.doorLockedState = true;
         }
 
@@ -414,6 +415,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
             intermediateState.intruderDetected = false;
             intermediateState.allClear = false; // reset the signal
             intermediateState.doorLockedState = false; // unlock door after all clear
+            intermediateState.alarmActiveState = false;
             log.append(formatLogEntry("Door unlocked after all clear"));
         }
     }

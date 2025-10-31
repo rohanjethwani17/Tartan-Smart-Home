@@ -235,12 +235,33 @@ div {
     <#if tartanHome.keylessEntryEnabled == true>
         <strong><font color="green">Enabled</font></strong>
         <br>
-        <label for="detectedDevices">Detected Devices (comma-separated):</label>
+        <label for="detectedDevices">Simulated Detected Devices (comma-separated):</label>
         <input id="detectedDevices" type="text" placeholder="e.g. device4, device5" />
+        <br>
+        <#if tartanHome.authorizedDevices?size gt 0>
+        <label>Authorized Devices:</label>
+        <ul>
+        <#list tartanHome.authorizedDevices as device>
+            <li>${device}</li>
+        </#list>
+        </ul>
+    <#else>
+        <p>No authorized devices</p>
+    </#if>
     <#else>
         <strong><font color="red">Disabled</font></strong>
     </#if>
     </p>
+    <hr>
+    <h3>Night Lock Schedule</h3>
+    <p>
+        <label>Night Lock Start:</label>
+        <strong>${tartanHome.nightStart}</strong>
+        <br>
+        <label>Night Lock End:</label>
+        <strong>${tartanHome.nightEnd}</strong>
+    </p>
+    <hr>
     <h3> Event log</h3>
     <textarea id="log" rows="15" cols="150">
     <#list tartanHome.eventLog as i>

@@ -2,8 +2,11 @@ package tartan.smarthome;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 import org.hibernate.validator.constraints.NotEmpty;
 
@@ -56,6 +59,28 @@ public class TartanHomeSettings {
 
     @JsonProperty
     private List<String> authorizedDevices = new ArrayList<>();
+
+    @JsonProperty
+    private LocalTime nightStart;
+
+    @JsonProperty
+    private LocalTime nightEnd;
+
+    public LocalTime getNightStart() {
+        return nightStart;
+    }
+
+    public void setNightStart(LocalTime nightStart) {
+        this.nightStart = nightStart;
+    }
+
+    public LocalTime getNightEnd() {
+        return nightEnd;
+    }
+
+    public void setNightEnd(LocalTime nightEnd) {
+        this.nightEnd = nightEnd;
+    }
 
     public List<String> getAuthorizedDevices() {
         return authorizedDevices;

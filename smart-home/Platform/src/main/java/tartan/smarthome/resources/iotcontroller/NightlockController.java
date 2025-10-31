@@ -2,15 +2,25 @@ package tartan.smarthome.resources.iotcontroller;
 
 import tartan.smarthome.resources.TartanState;
 
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.time.LocalTime;
 
 public class NightlockController {
     private final TartanState tartanState;
     private LocalTime nightStart = LocalTime.of(22, 0); // default night start 10 PM
-    private LocalTime nightEnd = LocalTime.of(6, 0);    // default night end 6 AM
+    private LocalTime nightEnd = LocalTime.of(6, 0); // default night end 6 AM
+    private StringBuffer log;
 
-    public NightlockController(TartanState tartanState) {
+    private String formatLogEntry(String entry) {
+        long timeStamp = System.currentTimeMillis();
+        SimpleDateFormat sdf = new SimpleDateFormat("MMM dd,yyyy HH:mm");
+        return "[" + sdf.format(new Date(timeStamp)) + "]: " + entry + "\n";
+    }
+
+    public NightlockController(TartanState tartanState, StringBuffer log) {
         this.tartanState = tartanState;
+        this.log = log;
     }
 
     /**
@@ -26,11 +36,11 @@ public class NightlockController {
      */
     public void activateNightLock() {
         if (Boolean.TRUE.equals(tartanState.getDoorLockedState())) {
-            System.out.println("[ACCESS PANEL] Door already locked.");
+            log.append(formatLogEntry("[ACCESS PANEL] Door already locked."));
             return;
         }
         tartanState.setDoorLockedState(true);
-        System.out.println("[ACCESS PANEL] Night Lock activated — door locked.");
+        log.append(formatLogEntry("[ACCESS PANEL] Night Lock activated - door locked."));
     }
 
     /**
@@ -39,13 +49,12 @@ public class NightlockController {
     public void deactivateNightLock() {
         if (!tartanState.getDoorLockedState()) {
             // Door already unlocked → do nothing
-            System.out.println("[ACCESS PANEL] Door already unlocked.");
+            log.append(formatLogEntry("[ACCESS PANEL] Door already unlocked."));
             return;
         }
         tartanState.setDoorLockedState(false);
-        System.out.println("[ACCESS PANEL] Night Lock ended — door unlocked.");
+        log.append(formatLogEntry("[ACCESS PANEL] Night Lock ended - door unlocked."));
     }
-
 
     /**
      * Returns whether the door is currently locked

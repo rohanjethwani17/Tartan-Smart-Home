@@ -29,6 +29,8 @@ class HouseState(object):
       self.__humidity = 90
       self.__hvac_mode = HEATER
       self.__door_lock_state = False
+      self.__intruder_state = False
+      self.__all_clear_state = False
 
       self.__param = ";"
       self.__end = "."
@@ -46,7 +48,7 @@ class HouseState(object):
          else:
             self.__humidity +=1
 
-   def set_state(self, new_state):
+   def set_state(self, new_state, connection=None):
       '''
       Handle set state requests
       '''
@@ -86,6 +88,38 @@ class HouseState(object):
          elif k == "DLS":  # door locked state
             if v == "1": self.__door_lock_state = True
             else: self.__door_lock_state = False
+         elif k == "IS":  # Intruder State
+            if v == "1":
+               self.__intruder_state = True
+               self.__all_clear_state = False
+               if connection is not None:
+                     threading.Timer(5.0, self._trigger_all_clear, args=(connection,)).start()
+            else:
+               self.__intruder_state = False
+         elif k == "ACS":  # All Clear State
+            if v == "1": self.__all_clear_state = True
+            else: self.__all_clear_state = False
+
+   def _trigger_all_clear(self, connection):
+      self.__intruder_state = True
+      self.__all_clear_state = True
+
+      try:
+         su = "SU:{}.\n".format(self.get_state())
+         connection.sendall(su.encode)
+      except Exception as e:
+         print("Error: %s" % str(e))
+         traceback.print_exc()
+
+   def set_intruder_state(self, s): self.__intruder_state = s
+   def get_intruder_state(self):
+      if self.__intruder_state: return "1"
+      return "0"
+
+   def set_all_clear_state(self, s): self.__all_clear_state = s
+   def get_all_clear_state(self):
+      if self.__all_clear_state: return "1"
+      return "0"
 
    def set_door_lock_state(self, d): self.__door_lock_state = d
    def get_door_lock_state(self): 
@@ -146,7 +180,7 @@ class HouseState(object):
       '''
       Handle get state requests
       '''
-      return "TR={0};HR={1};DS={2};LS={3};PS={4};AS={5};AA={6};HES={7};CHS={8};HM={9};HUS={10};DLS={11}".format(self.get_temperature(),
+      return "TR={0};HR={1};DS={2};LS={3};PS={4};AS={5};AA={6};HES={7};CHS={8};HM={9};HUS={10};DLS={11};IS={12};ACS={13}".format(self.get_temperature(),
                                                                                                self.get_humidity(),
                                                                                                self.get_door(),
                                                                                                self.get_light(),
@@ -157,7 +191,10 @@ class HouseState(object):
                                                                                                self.get_chiller_state(),
                                                                                                self.get_hvac_mode(),
                                                                                                self.get_dehumidifier(),
-                                                                                               self.get_door_lock_state())
+                                                                                               self.get_door_lock_state(),
+                                                                                                self.get_intruder_state(),
+                                                                                               self.get_all_clear_state())
+                                                                              
 house = HouseState()
 
 class UserThread(threading.Thread):
@@ -236,7 +273,7 @@ def main():
                   connection.sendall(su.encode())
 
                elif data[:2] == "SS":
-                  house.set_state(data)
+                  house.set_state(data, connection)
                   connection.sendall("OK.\n".encode())
 
                else:
