@@ -73,4 +73,3 @@ jobs:
             cd ~/prod
             docker compose down
             docker compose up --build -d
-
