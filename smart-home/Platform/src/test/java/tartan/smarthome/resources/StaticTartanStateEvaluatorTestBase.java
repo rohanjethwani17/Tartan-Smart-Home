@@ -2,6 +2,7 @@ package tartan.smarthome.resources;
 
 import org.junit.jupiter.api.BeforeEach;
 
+import java.time.LocalTime;
 import java.util.List;
 
 class StaticTartanStateEvaluatorTestBase {
@@ -34,6 +35,9 @@ class StaticTartanStateEvaluatorTestBase {
         output.setKeylessEntryEnabled(false);
         output.setAuthorizedDevices(List.of());
         output.setDetectedDevices(List.of());
+
+        output.setNightStart(LocalTime.of(22, 0));
+        output.setNightEnd(LocalTime.of(22, 0));
 
         output.setIntruderDetected(false);
         output.setAllClear(false);

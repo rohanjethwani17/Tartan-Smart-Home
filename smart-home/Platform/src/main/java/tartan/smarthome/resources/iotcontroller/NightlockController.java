@@ -74,7 +74,6 @@ public class NightlockController {
     public boolean checkAndApplyNightLock(LocalTime currentTime) {
         // If nightStart and nightEnd are equal, nightlock never activates
         if (nightStart.equals(nightEnd)) {
-            deactivateNightLock();
             return false;
         }
 
