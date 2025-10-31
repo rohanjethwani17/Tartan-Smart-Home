@@ -6,8 +6,6 @@ services:
       no_cache: true
     depends_on:
       - "mysql-container"
-      - "house-cmu"
-      - "house-mse"
     ports:
       - "8080:8080"
   mysql-container:
