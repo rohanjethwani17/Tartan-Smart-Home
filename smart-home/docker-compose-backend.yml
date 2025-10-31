@@ -1,0 +1,22 @@
+version: '3'
+services:
+  platform:
+    build:
+      context: Platform/
+      no_cache: true
+    depends_on:
+      - "mysql-container"
+      - "house-cmu"
+      - "house-mse"
+    ports:
+      - "8080:8080"
+  mysql-container:
+    build: Database/
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-storage:/var/lib/mysql
+
+
+volumes:
+  mysql-storage:
