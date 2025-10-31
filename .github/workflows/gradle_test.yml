@@ -70,6 +70,6 @@ jobs:
           key: ${{ secrets.KEY }}
           script: |
             set -e
-            cd ~/prod
+            cd ~/prod/smart-home
             docker compose down
             docker compose up --build -d
