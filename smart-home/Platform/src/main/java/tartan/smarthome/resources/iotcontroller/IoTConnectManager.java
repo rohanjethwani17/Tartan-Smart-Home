@@ -94,6 +94,15 @@ public class IoTConnectManager {
             String doorLockedStateString = state.getDoorLockedState() ? IoTValues.DOOR_LOCKED : IoTValues.DOOR_UNLOCKED;
             newStateVector.add(IoTValues.DOOR_LOCKED_STATE + IoTValues.PARAM_EQ + doorLockedStateString);
         }
+        if (state.getIntruderDetected() != null) {
+            String intruderStateString = state.getIntruderDetected() ? IoTValues.INTRUDER_DETECTED
+                    : IoTValues.NO_INTRUDER_DETECTED;
+            newStateVector.add(IoTValues.INTRUDER_STATE + IoTValues.PARAM_EQ + intruderStateString);
+        }
+        if (state.getAllClear() != null) {
+            String allClearStateString = state.getAllClear() ? IoTValues.ALL_CLEAR : IoTValues.NOT_ALL_CLEAR;
+            newStateVector.add(IoTValues.ALL_CLEAR_STATE + IoTValues.PARAM_EQ + allClearStateString);
+        }
 
         StringBuffer newState = new StringBuffer();
         // merge the newStateVector into the newState buffer by separating entries with
@@ -201,6 +210,18 @@ public class IoTConnectManager {
                 } else {
                     state.setDoorLockedState(false);
                     state.setDoorLockRequest(false);
+                }
+            } else if (data[0].equals(IoTValues.INTRUDER_STATE)) {
+                if (val == 1) {
+                    state.setIntruderDetected(true);
+                } else {
+                    state.setIntruderDetected(false);
+                }
+            } else if (data[0].equals(IoTValues.ALL_CLEAR_STATE)) {
+                if (val == 1) {
+                    state.setAllClear(true);
+                } else {
+                    state.setAllClear(false);
                 }
             }
         }

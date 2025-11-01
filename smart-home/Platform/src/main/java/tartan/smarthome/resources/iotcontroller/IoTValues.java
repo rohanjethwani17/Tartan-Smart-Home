@@ -28,6 +28,10 @@ public abstract class IoTValues {
     public static final String KEYLESS_ENTRY_ENABLED = "KEE";
     public static final String AUTHORIZED_DEVICES = "AD";
     public static final String DETECTED_DEVICES = "DD";
+    public static final String INTRUDER_STATE = "IS";
+    public static final String ALL_CLEAR_STATE = "ACS";
+    public static final String NIGHT_LOCK_START = "NLS";
+    public static final String NIGHT_LOCK_END = "NLE";
 
     // protocol control values
     public static final String PARAM_DELIM = ";";
@@ -61,6 +65,12 @@ public abstract class IoTValues {
 
     public static final String DOOR_LOCKED = "1";
     public static final String DOOR_UNLOCKED = "0";
+
+    public static final String INTRUDER_DETECTED = "1";
+    public static final String NO_INTRUDER_DETECTED = "0";
+
+    public static final String ALL_CLEAR = "1";
+    public static final String NOT_ALL_CLEAR = "0";
 
     public static final String OK = "OK";
 

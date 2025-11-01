@@ -11,6 +11,7 @@ import tartan.smarthome.core.TartanHomeData;
 import tartan.smarthome.core.TartanHomeValues;
 import tartan.smarthome.db.HomeDAO;
 
+import java.time.LocalTime;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,8 @@ public class TartanHomeService {
     private Boolean passcodeRequiredForLock;
     private Boolean keylessEntryEnabled;
     private List<String> authorizedDevices;
+    private LocalTime nightStart;
+    private LocalTime nightEnd;
 
     // status parameters
     private HomeDAO homeDAO;
@@ -81,6 +84,8 @@ public class TartanHomeService {
         this.passcodeRequiredForLock = settings.getPasscodeRequiredForLock();
         this.keylessEntryEnabled = settings.getKeylessEntryEnabled();
         this.authorizedDevices = settings.getAuthorizedDevices();
+        this.nightStart = settings.getNightStart();
+        this.nightEnd = settings.getNightEnd();
 
         this.historyTimer = historyTimer * 1000;
         this.logHistory = true;
@@ -97,7 +102,9 @@ public class TartanHomeService {
         userSettings.setAlarmPassCode(this.alarmPasscode);
         userSettings.setPasscodeRequiredForLock(this.passcodeRequiredForLock);
         userSettings.setKeylessEntryEnabled(this.keylessEntryEnabled);
-        userSettings.setAuthorizedDevices(authorizedDevices);
+        userSettings.setAuthorizedDevices(this.authorizedDevices);
+        userSettings.setNightStart(this.nightStart);
+        userSettings.setNightEnd(this.nightEnd);
 
         controller.updateSettings(userSettings);
 
@@ -381,6 +388,9 @@ public class TartanHomeService {
         tartanHome.setPasscodeRequiredForLock(this.passcodeRequiredForLock);
         tartanHome.setKeylessEntryEnabled(this.keylessEntryEnabled);
         tartanHome.setAuthorizedDevices(this.authorizedDevices);
+
+        tartanHome.setNightStart(this.nightStart);
+        tartanHome.setNightEnd(this.nightEnd);
 
         tartanHome.setEventLog(controller.getLogMessages());
         tartanHome.setAuthenticated(String.valueOf(this.authenticated));

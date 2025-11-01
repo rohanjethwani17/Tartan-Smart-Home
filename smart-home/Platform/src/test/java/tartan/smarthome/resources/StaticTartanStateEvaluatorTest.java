@@ -683,11 +683,15 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
     public void test_intruderBreakin() {
         state.setProximityState(false); // user is away
         state.setDoorState(true); // door is open
+        state.setAlarmState(true);
         state.setDoorLockedState(false); // doors not locked
 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
 
-        assertTrue(Boolean.TRUE.equals(evaluatedState.doorLockedState));
+        // door is closed and locked
+        assertFalse(evaluatedState.getDoorState());
+        assertTrue(evaluatedState.getDoorLockedState());
+        assertTrue(evaluatedState.getIntruderDetected());
         assertTrue(log.toString().contains("possible intruder detected"));
     }
 
@@ -696,18 +700,24 @@ class StaticTartanStateEvaluatorTest extends StaticTartanStateEvaluatorTestBase 
         state.setProximityState(false); // user is away
         state.setDoorState(true); // door is opened
         state.setDoorLockedState(false); // doors not locked
+        state.setAlarmState(true);
 
         TartanState evaluatedState = evaluator.evaluateState(state, log);
 
-        // Sanity: intruder has engaged lock
-        assertTrue(Boolean.TRUE.equals(evaluatedState.doorLockedState));
+        // door is closed and locked and intruder detected
+        assertFalse(evaluatedState.getDoorState());
+        assertTrue(evaluatedState.getDoorLockedState());
+        assertTrue(evaluatedState.getIntruderDetected());
+        assertTrue(log.toString().contains("possible intruder detected"));
 
         // 2) Clear the trigger and raise ALL CLEAR
-        evaluatedState.setDoorState(false); // CLOSED
-        evaluatedState.allClear = true; // signal all clear
-        evaluator.evaluateState(evaluatedState, log);
+        evaluatedState.setAllClear(true);
+        evaluatedState = evaluator.evaluateState(evaluatedState, log);
 
         // Must log "Door unlocked after all clear"
+        assertFalse(evaluatedState.getDoorLockedState());
+        assertFalse(evaluatedState.getAllClear());
+        assertFalse(evaluatedState.getIntruderDetected());
         assertTrue(log.toString().contains("Door unlocked after all clear"));
     }
 }
@@ -870,18 +880,12 @@ class StaticTartanStateEvaluatorUC13EquivalenceClassesTest extends StaticTartanS
         private TartanState state;
         private NightlockController nightlock;
         private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-        private final PrintStream originalOut = System.out;
 
         @BeforeEach
         public void setUp() {
             state = new TartanState();
-            nightlock = new NightlockController(state);
+            nightlock = new NightlockController(state, log);
             System.setOut(new PrintStream(outContent));
-        }
-
-        @AfterEach
-        public void tearDown() {
-            System.setOut(originalOut);
         }
 
         // ---------- BASIC FUNCTIONALITY TESTS ----------
@@ -892,7 +896,7 @@ class StaticTartanStateEvaluatorUC13EquivalenceClassesTest extends StaticTartanS
             boolean active = nightlock.checkAndApplyNightLock(LocalTime.of(23, 0));
             assertTrue(active, "Nightlock should activate during night.");
             assertTrue(state.getDoorLockedState(), "Door should be locked.");
-            assertTrue(outContent.toString().contains("Night Lock activated"), "Activation message expected.");
+            assertTrue(log.toString().contains("Night Lock activated"), "Activation message expected.");
         }
 
         @Test
@@ -936,14 +940,14 @@ class StaticTartanStateEvaluatorUC13EquivalenceClassesTest extends StaticTartanS
         public void testActivateNightLockWhenAlreadyLocked() {
             state.setDoorLockedState(true);
             nightlock.activateNightLock();
-            assertTrue(outContent.toString().contains("already locked"), "Should detect already locked state.");
+            assertTrue(log.toString().contains("already locked"), "Should detect already locked state.");
         }
 
         @Test
         public void testDeactivateNightLockWhenAlreadyUnlocked() {
             state.setDoorLockedState(false);
             nightlock.deactivateNightLock();
-            assertTrue(outContent.toString().contains("already unlocked"), "Should detect already unlocked state.");
+            assertTrue(log.toString().contains("already unlocked"), "Should detect already unlocked state.");
         }
 
         @Test

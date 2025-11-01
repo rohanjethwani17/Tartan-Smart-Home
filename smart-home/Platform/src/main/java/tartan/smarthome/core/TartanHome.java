@@ -3,6 +3,7 @@ package tartan.smarthome.core;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -93,6 +94,12 @@ public class TartanHome {
     private Boolean keylessEntryEnabled;
 
     @JsonProperty
+    private LocalTime nightStart;
+
+    @JsonProperty
+    private LocalTime nightEnd;
+
+    @JsonProperty
     private List<String> authorizedDevices;
 
     @JsonProperty
@@ -102,6 +109,22 @@ public class TartanHome {
      * Empty constructor needed by Jackson deserialization
      */
     public TartanHome() {
+    }
+
+    public LocalTime getNightStart() {
+        return nightStart;
+    }
+
+    public void setNightStart(LocalTime nightStart) {
+        this.nightStart = nightStart;
+    }
+
+    public LocalTime getNightEnd() {
+        return nightEnd;
+    }
+
+    public void setNightEnd(LocalTime nightEnd) {
+        this.nightEnd = nightEnd;
     }
 
     public List<String> getDetectedDevices() {

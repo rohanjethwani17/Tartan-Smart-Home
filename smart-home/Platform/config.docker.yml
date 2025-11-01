@@ -28,6 +28,9 @@ houses:
       - device2
       - device3
 
+    nightStart: "22:00"
+    nightEnd: "06:00"
+
     # Next house
   - name: cmu
     address: house-cmu
@@ -40,6 +43,8 @@ houses:
     alarmPasscode: quit
     passcodeRequiredForLock: false
     keylessEntryEnabled: false
+    nightStart: "22:00"
+    nightEnd: "06:00"
 
 # how many seconds between database snapshots
 historyTimer: 5
