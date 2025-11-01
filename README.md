@@ -21,8 +21,8 @@ about Tartan's design, architecture, requirements, etc.
 
 ## Group members (W01)
 
-Hooriya Kazmi (hkazmi)
-Sergio De Guzman (sdeguzma)
-Rohan Jethwani (rjethwan)
-Alez Zaiane (adzaiane)
-Daniel Thai (dthai)
+- Hooriya Kazmi (hkazmi)
+- Sergio De Guzman (sdeguzma)
+- Rohan Jethwani (rjethwan)
+- Alec Zaiane (adzaiane)
+- Daniel Thai (dthai)
