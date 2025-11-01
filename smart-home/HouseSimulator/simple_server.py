@@ -2,9 +2,12 @@ import socket
 import sys
 import threading
 import traceback
+from typing import Literal, TypeAlias
 
 HEATER = "Heater"
 CHILLER = "Chiller"
+
+HVAC_MODE_TYPE: TypeAlias = Literal["Heater", "Chiller"]
 
 
 class HouseState(object):
@@ -16,21 +19,21 @@ class HouseState(object):
         """
         Initialize the house state
         """
-        self.__door = True
-        self.__light = True
-        self.__proximity = True
-        self.__alarm_active = False
-        self.__alarm_state = False
-        self.__heater_state = True
-        self.__heater_state = True
-        self.__chiller_state = False
-        self.__dehumidifier = False
-        self.__heater_state = False
-        self.__chiller_state = False
-        self.__temperature = 65
-        self.__humidity = 90
-        self.__hvac_mode = HEATER
-        self.__door_lock_state = False
+        self.__door: bool = True
+        self.__light: bool = True
+        self.__proximity: bool = True
+        self.__alarm_active: bool = False
+        self.__alarm_state: bool = False
+        self.__heater_state: bool = True
+        self.__heater_state: bool = True
+        self.__chiller_state: bool = False
+        self.__dehumidifier: bool = False
+        self.__heater_state: bool = False
+        self.__chiller_state: bool = False
+        self.__temperature: int = 65
+        self.__humidity: int = 90
+        self.__hvac_mode: HVAC_MODE_TYPE = HEATER
+        self.__door_lock_state: bool = False
 
         self.__param = ";"
         self.__end = "."
@@ -50,7 +53,7 @@ class HouseState(object):
             else:
                 self.__humidity += 1
 
-    def set_state(self, new_state):
+    def set_state(self, new_state: str):
         """
         Handle set state requests
         """
@@ -112,7 +115,7 @@ class HouseState(object):
                 else:
                     self.__door_lock_state = False
 
-    def set_door_lock_state(self, d):
+    def set_door_lock_state(self, d: bool):
         self.__door_lock_state = d
 
     def get_door_lock_state(self):
@@ -127,7 +130,7 @@ class HouseState(object):
     def get_humidity(self):
         return self.__humidity
 
-    def set_door(self, d):
+    def set_door(self, d: bool):
         self.__door = d
 
     def get_door(self):
@@ -135,7 +138,7 @@ class HouseState(object):
             return "1"
         return "0"
 
-    def set_light(self, l):
+    def set_light(self, l: bool):
         self.__light = l
 
     def get_light(self):
@@ -143,7 +146,7 @@ class HouseState(object):
             return "1"
         return "0"
 
-    def set_proximity(self, p):
+    def set_proximity(self, p: bool):
         self.__proximity = p
 
     def get_proximity(self):
@@ -151,7 +154,7 @@ class HouseState(object):
             return "1"
         return "0"
 
-    def set_alarm_state(self, a):
+    def set_alarm_state(self, a: bool):
         self.__alarm_state = a
 
     def get_alarm_state(self):
@@ -159,7 +162,7 @@ class HouseState(object):
             return "1"
         return "0"
 
-    def set_alarm_active_state(self, a):
+    def set_alarm_active_state(self, a: bool):
         self.__alarm_active = a
 
     def get_alarm_active_state(self):
@@ -167,7 +170,7 @@ class HouseState(object):
             return "1"
         return "0"
 
-    def set_heater_state(self, h):
+    def set_heater_state(self, h: bool):
         self.__heater_state = h
 
     def get_heater_state(self):
@@ -175,7 +178,7 @@ class HouseState(object):
             return "1"
         return "0"
 
-    def set_chiller_state(self, h):
+    def set_chiller_state(self, h: bool):
         self.__chiller_state = h
 
     def get_chiller_state(self):
@@ -183,7 +186,7 @@ class HouseState(object):
             return "1"
         return "0"
 
-    def set_hvac_mode(self, h):
+    def set_hvac_mode(self, h: HVAC_MODE_TYPE):
         self.__hvac_mode = h
 
     def get_hvac_mode(self):
@@ -191,7 +194,7 @@ class HouseState(object):
             return "1"
         return "0"
 
-    def set_dehumidifier(self, h):
+    def set_dehumidifier(self, h: bool):
         self.__dehumidifier = h
 
     def get_dehumidifier(self):
