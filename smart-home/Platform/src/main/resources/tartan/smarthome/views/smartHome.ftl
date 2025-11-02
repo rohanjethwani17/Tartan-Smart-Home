@@ -263,7 +263,7 @@ div {
     </p>
     <hr>
     <h3>Weekly Report</h3>
-    <p><strong>Group: ${tartanHome.groupExperiment}, set in config.docker.yml</strong></p>
+    <p><strong>Group: ${tartanHome.groupExperiment}</strong></p>
     <#-- Get all week keys as a list -->
     <#assign weekKeys = tartanHome.weeklyLightsOnUsage?keys>
 
@@ -274,7 +274,7 @@ div {
     <#-- Get the last week -->
     <#assign secondLastWeek = weekKeys[weekKeys?size - 2]>
     <#assign secondLastValue = tartanHome.weeklyLightsOnUsage[secondLastWeek]>
-    <#if tartanHome.groupExperiment == "1">
+    <#if tartanHome.groupExperiment == "time">
         <h4>Current Total Light Usage</h4>
         <p>
             ${lastValue/(60*1000) % 60} minutes,
