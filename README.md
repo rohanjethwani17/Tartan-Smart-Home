@@ -15,6 +15,9 @@ The build instructions can be found [here](./docs/build_instructions.md).
     - To revert to the previous state, navigate to the `Actions` tab of the repository, select `Revert Backend` from the
       left workflow panel, and choose `Run workflow` from the blue box in the centre of the page.
     - A log demonstrating workflow reversion can be found [here](docs/G3/example-reversion.md)
+    - If you wanted to manually revert by entering a single command, you could run
+      `docker tag smart-home-platform:prev smart-home-platform:active && docker tag smart-home-mysql-container:prev smart-home-mysql-container:active && docker compose -f docker-compose-backend.yml up -d`
+      from the `~/prod/smart-home` directory in the deployment server
 
 ## System description
 
