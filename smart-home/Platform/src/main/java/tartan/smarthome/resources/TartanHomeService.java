@@ -17,6 +17,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.time.LocalDate;
 import java.time.temporal.WeekFields;
 import java.util.Locale;
@@ -56,7 +57,7 @@ public class TartanHomeService {
     private Long lightsOnDuration;
 
     // Weekly usage tracking
-    private Map<String, Long> weeklyLightsOnUsage = new java.util.TreeMap<>();
+    private Map<String, Long> weeklyLightsOnUsage = new TreeMap<>();
 
     // status parameters
     private HomeDAO homeDAO;
@@ -512,7 +513,7 @@ public class TartanHomeService {
             String yearWeekKey = currentYear + "-" + currentWeek;
             weeklyLightsOnUsage.put(yearWeekKey, this.lightsOnDuration);
             // Set the map in the TartanHome object for UI/reporting
-            tartanHome.setWeeklyLightsOnUsage(new java.util.TreeMap<>(weeklyLightsOnUsage));
+            tartanHome.setWeeklyLightsOnUsage(weeklyLightsOnUsage);
 
             LOGGER.info("Home light state updated to '{}'", newLightState);
         }
