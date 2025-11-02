@@ -17,6 +17,9 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.time.LocalDate;
+import java.time.temporal.WeekFields;
+import java.util.Locale;
 
 /***
  * The service layer for the Tartan Home System. Additional inputs and control
@@ -51,6 +54,10 @@ public class TartanHomeService {
     private Boolean prevLightState;
     private LocalTime timeLightMinutesUpdated;
     private Long lightsOnDuration;
+    
+    // Track the last week number when lightsOnDuration was reset
+    private int lastResetWeek = -1;
+    private int lastResetYear = -1;
 
     // status parameters
     private HomeDAO homeDAO;
@@ -98,6 +105,11 @@ public class TartanHomeService {
         this.timeLightMinutesUpdated = LocalTime.now();
         this.lightsOnDuration = 0L;
         this.prevLightState = true;
+
+        LocalDate now = LocalDate.now();
+        WeekFields weekFields = WeekFields.of(Locale.getDefault());
+        this.lastResetWeek = now.get(weekFields.weekOfWeekBasedYear());
+        this.lastResetYear = now.getYear();
 
         this.historyTimer = historyTimer * 1000;
         this.logHistory = true;
@@ -385,6 +397,17 @@ public class TartanHomeService {
      * @return the current state
      */
     public TartanHome getState() {
+        LocalDate nowDate = LocalDate.now();
+        WeekFields weekFields = WeekFields.of(Locale.getDefault());
+        int currentWeek = nowDate.get(weekFields.weekOfWeekBasedYear());
+        int currentYear = nowDate.getYear();
+        if (currentYear != lastResetYear || currentWeek != lastResetWeek) {
+            LOGGER.info("Resetting minutesLightsOn (lightsOnDuration) for new week: week {} year {}", currentWeek,
+                    currentYear);
+            this.lightsOnDuration = 0L;
+            this.lastResetWeek = currentWeek;
+            this.lastResetYear = currentYear;
+        }
 
         TartanHome tartanHome = new TartanHome();
 
@@ -480,6 +503,7 @@ public class TartanHomeService {
                     this.lightsOnDuration += diff;
                 }
             }
+            this.prevLightState = lightState;
             tartanHome.setMinutesLightsOn(this.lightsOnDuration);
 
             LOGGER.info("Home light state updated to '{}'", newLightState);

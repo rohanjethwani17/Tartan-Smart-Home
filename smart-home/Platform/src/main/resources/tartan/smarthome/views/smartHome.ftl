@@ -262,15 +262,15 @@ div {
         <strong>${tartanHome.nightEnd}</strong>
     </p>
     <hr>
-    <h3>Reporting</h3>
+    <h3>Weekly Report</h3>
     <#if tartanHome.groupExperiment == "1">
-        <h4>Total Time light Has Been On (This Month)</h4>
+        <h4>Total Light Usage</h4>
         <p>
             ${tartanHome.minutesLightsOn/(60*1000) % 60} minutes,
             ${tartanHome.minutesLightsOn/1000 % 60} seconds
         </p>
     <#else>
-        <h4>Total Cost of Light Being On (This Month)</h4>
+        <h4>Total Light Electricity Cost</h4>
         <p>${tartanHome.minutesLightsOn/(60*1000) * 0.05} CAD</p>
     </#if>
     <hr>
