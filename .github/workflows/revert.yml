@@ -17,5 +17,8 @@ jobs:
           script: |
             set -e
             cd ~/prod/smart-home
-            git reset --hard HEAD^
-            docker compose -f docker-compose-backend.yml up --build -d
+            
+            docker tag smart-home-platform:prev smart-home-platform:latest
+            docker tag smart-home-mysql-container:prev smart-home-mysql-container:latest 
+
+            docker compose -f docker-compose-backend.yml up -d

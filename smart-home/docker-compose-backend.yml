@@ -3,17 +3,18 @@ services:
     build:
       context: Platform/
       no_cache: true
+    image: smart-home-platform:active
     depends_on:
       - "mysql-container"
     ports:
       - "8080:8080"
   mysql-container:
     build: Database/
+    image: smart-home-mysql-container:active
     ports:
       - "3306:3306"
     volumes:
       - mysql-storage:/var/lib/mysql
-
 
 volumes:
   mysql-storage:
