@@ -72,7 +72,7 @@ jobs:
             set -e
             cd ~/prod/smart-home
 
-            docker tag smart-home-platform:latest smart-home-platform:prev
-            docker tag smart-home-mysql-container:latest smart-home-mysql-container:prev 
+            docker tag smart-home-platform:active smart-home-platform:prev
+            docker tag smart-home-mysql-container:active smart-home-mysql-container:prev 
 
             docker compose -f docker-compose-backend.yml up --build -d
