@@ -12,6 +12,7 @@ import tartan.smarthome.core.TartanHomeValues;
 import tartan.smarthome.db.HomeDAO;
 
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,12 @@ public class TartanHomeService {
     private List<String> authorizedDevices;
     private LocalTime nightStart;
     private LocalTime nightEnd;
+
+    // AB Testing parameters
+    private String groupExperiment;
+    private Boolean prevLightState;
+    private LocalTime timeLightMinutesUpdated;
+    private Long lightsOnDuration;
 
     // status parameters
     private HomeDAO homeDAO;
@@ -87,14 +94,16 @@ public class TartanHomeService {
         this.nightStart = settings.getNightStart();
         this.nightEnd = settings.getNightEnd();
 
+        this.groupExperiment = settings.getGroupExperiment();
+        this.timeLightMinutesUpdated = LocalTime.now();
+        this.lightsOnDuration = 0L;
+        this.prevLightState = true;
+
         this.historyTimer = historyTimer * 1000;
         this.logHistory = true;
 
         // Create and initialize the controller for this house
         this.controller = new IoTControlManager(user, password, new StaticTartanStateEvaluator());
-
-        TartanHome temp = new TartanHome();
-        temp.setAlarmDelay(alarmDelay);
 
         TartanState userSettings = new TartanState();
         userSettings.setAlarmDelay(Integer.parseInt(this.alarmDelay));
@@ -392,6 +401,8 @@ public class TartanHomeService {
         tartanHome.setNightStart(this.nightStart);
         tartanHome.setNightEnd(this.nightEnd);
 
+        tartanHome.setGroupExperiment(this.groupExperiment);
+
         tartanHome.setEventLog(controller.getLogMessages());
         tartanHome.setAuthenticated(String.valueOf(this.authenticated));
 
@@ -449,8 +460,28 @@ public class TartanHomeService {
             LOGGER.info("Home door state updated to '{}'", newDoorState);
         }
         if (state.getLightState() != null) {
-            String newLightState = state.getLightState() ? TartanHomeValues.ON : TartanHomeValues.OFF;
+            Boolean lightState = state.getLightState();
+            String newLightState = lightState ? TartanHomeValues.ON : TartanHomeValues.OFF;
             tartanHome.setLight(newLightState);
+            if (lightState) {
+                if (this.prevLightState != lightState) {
+                    this.timeLightMinutesUpdated = LocalTime.now();
+                } else {
+                    LocalTime now = LocalTime.now();
+                    Long diff = this.timeLightMinutesUpdated.until(now, ChronoUnit.MILLIS);
+                    this.timeLightMinutesUpdated = now;
+                    this.lightsOnDuration += diff;
+                }
+            } else {
+                if (prevLightState != lightState) {
+                    LocalTime now = LocalTime.now();
+                    Long diff = this.timeLightMinutesUpdated.until(now, ChronoUnit.MILLIS);
+                    this.timeLightMinutesUpdated = now;
+                    this.lightsOnDuration += diff;
+                }
+            }
+            tartanHome.setMinutesLightsOn(this.lightsOnDuration);
+
             LOGGER.info("Home light state updated to '{}'", newLightState);
         }
         if (state.getProximityState() != null) {

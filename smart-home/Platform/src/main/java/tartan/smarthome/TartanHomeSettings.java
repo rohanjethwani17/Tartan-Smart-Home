@@ -8,7 +8,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import org.hibernate.validator.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 
 /**
  * This is Jackson-compatible a configuration class for the initial
@@ -65,6 +65,18 @@ public class TartanHomeSettings {
 
     @JsonProperty
     private LocalTime nightEnd;
+
+    @NotEmpty
+    @JsonProperty
+    private String groupExperiment;
+
+    public String getGroupExperiment() {
+        return groupExperiment;
+    }
+
+    public void setGroupExperiment(String groupExperiment) {
+        this.groupExperiment = groupExperiment;
+    }
 
     public LocalTime getNightStart() {
         return nightStart;

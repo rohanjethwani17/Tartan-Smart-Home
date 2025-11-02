@@ -262,6 +262,18 @@ div {
         <strong>${tartanHome.nightEnd}</strong>
     </p>
     <hr>
+    <h3>Reporting</h3>
+    <#if tartanHome.groupExperiment == "1">
+        <h4>Total Time light Has Been On (This Month)</h4>
+        <p>
+            ${tartanHome.minutesLightsOn/(60*1000) % 60} minutes,
+            ${tartanHome.minutesLightsOn/1000 % 60} seconds
+        </p>
+    <#else>
+        <h4>Total Cost of Light Being On (This Month)</h4>
+        <p>${tartanHome.minutesLightsOn/(60*1000) * 0.05} CAD</p>
+    </#if>
+    <hr>
     <h3> Event log</h3>
     <textarea id="log" rows="15" cols="150">
     <#list tartanHome.eventLog as i>

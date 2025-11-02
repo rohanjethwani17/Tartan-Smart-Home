@@ -3,6 +3,8 @@ package tartan.smarthome.core;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+import jakarta.persistence.Column;
+
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
@@ -104,6 +106,28 @@ public class TartanHome {
 
     @JsonProperty
     private List<String> detectedDevices;
+
+    @JsonProperty
+    private String groupExperiment;
+
+    @JsonProperty
+    private Long minutesLightsOn;
+
+    public Long getMinutesLightsOn() {
+        return this.minutesLightsOn;
+    }
+
+    public void setMinutesLightsOn(Long minutesLightsOn) {
+        this.minutesLightsOn = minutesLightsOn;
+    }
+
+    public String getGroupExperiment() {
+        return this.groupExperiment;
+    }
+
+    public void setGroupExperiment(String groupExperiment) {
+        this.groupExperiment = groupExperiment;
+    }
 
     /**
      * Empty constructor needed by Jackson deserialization
