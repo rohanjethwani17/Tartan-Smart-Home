@@ -7,6 +7,8 @@ import jakarta.persistence.Column;
 
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.Objects;
 
 /**
@@ -111,14 +113,14 @@ public class TartanHome {
     private String groupExperiment;
 
     @JsonProperty
-    private Long minutesLightsOn;
+    private Map<String, Long> weeklyLightsOnUsage = new TreeMap<>();
 
-    public Long getMinutesLightsOn() {
-        return this.minutesLightsOn;
+    public Map<String, Long> getWeeklyLightsOnUsage() {
+        return weeklyLightsOnUsage;
     }
 
-    public void setMinutesLightsOn(Long minutesLightsOn) {
-        this.minutesLightsOn = minutesLightsOn;
+    public void setWeeklyLightsOnUsage(Map<String, Long> weeklyLightsOnUsage) {
+        this.weeklyLightsOnUsage = weeklyLightsOnUsage;
     }
 
     public String getGroupExperiment() {

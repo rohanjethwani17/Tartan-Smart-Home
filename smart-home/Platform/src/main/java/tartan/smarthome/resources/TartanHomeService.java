@@ -54,10 +54,9 @@ public class TartanHomeService {
     private Boolean prevLightState;
     private LocalTime timeLightMinutesUpdated;
     private Long lightsOnDuration;
-    
-    // Track the last week number when lightsOnDuration was reset
-    private int lastResetWeek = -1;
-    private int lastResetYear = -1;
+
+    // Weekly usage tracking
+    private Map<String, Long> weeklyLightsOnUsage = new java.util.TreeMap<>();
 
     // status parameters
     private HomeDAO homeDAO;
@@ -106,10 +105,21 @@ public class TartanHomeService {
         this.lightsOnDuration = 0L;
         this.prevLightState = true;
 
+        // Calculate previous week (dummy previous week)
         LocalDate now = LocalDate.now();
         WeekFields weekFields = WeekFields.of(Locale.getDefault());
-        this.lastResetWeek = now.get(weekFields.weekOfWeekBasedYear());
-        this.lastResetYear = now.getYear();
+        int currentWeek = now.get(weekFields.weekOfWeekBasedYear());
+        int currentYear = now.getYear();
+        int prevWeek = currentWeek - 1;
+        int prevYear = currentYear;
+        if (prevWeek < 1) {
+            prevYear = currentYear - 1;
+            // Get the last week number of the previous year
+            LocalDate lastDayPrevYear = LocalDate.of(prevYear, 12, 31);
+            prevWeek = lastDayPrevYear.get(weekFields.weekOfWeekBasedYear());
+        }
+        String prevYearWeekKey = prevYear + "-" + prevWeek;
+        weeklyLightsOnUsage.put(prevYearWeekKey, 0L);
 
         this.historyTimer = historyTimer * 1000;
         this.logHistory = true;
@@ -397,17 +407,6 @@ public class TartanHomeService {
      * @return the current state
      */
     public TartanHome getState() {
-        LocalDate nowDate = LocalDate.now();
-        WeekFields weekFields = WeekFields.of(Locale.getDefault());
-        int currentWeek = nowDate.get(weekFields.weekOfWeekBasedYear());
-        int currentYear = nowDate.getYear();
-        if (currentYear != lastResetYear || currentWeek != lastResetWeek) {
-            LOGGER.info("Resetting minutesLightsOn (lightsOnDuration) for new week: week {} year {}", currentWeek,
-                    currentYear);
-            this.lightsOnDuration = 0L;
-            this.lastResetWeek = currentWeek;
-            this.lastResetYear = currentYear;
-        }
 
         TartanHome tartanHome = new TartanHome();
 
@@ -428,6 +427,11 @@ public class TartanHomeService {
 
         tartanHome.setEventLog(controller.getLogMessages());
         tartanHome.setAuthenticated(String.valueOf(this.authenticated));
+
+        LocalDate nowDate = LocalDate.now();
+        WeekFields weekFields = WeekFields.of(Locale.getDefault());
+        int currentWeek = nowDate.get(weekFields.weekOfWeekBasedYear());
+        int currentYear = nowDate.getYear();
 
         // TODO use TartanState here instead of Map<String, Object>.
         // Maybe extract big for (String s: keys) loop into function/class?
@@ -504,7 +508,11 @@ public class TartanHomeService {
                 }
             }
             this.prevLightState = lightState;
-            tartanHome.setMinutesLightsOn(this.lightsOnDuration);
+            // Calculate current week key and update the map
+            String yearWeekKey = currentYear + "-" + currentWeek;
+            weeklyLightsOnUsage.put(yearWeekKey, this.lightsOnDuration);
+            // Set the map in the TartanHome object for UI/reporting
+            tartanHome.setWeeklyLightsOnUsage(new java.util.TreeMap<>(weeklyLightsOnUsage));
 
             LOGGER.info("Home light state updated to '{}'", newLightState);
         }
