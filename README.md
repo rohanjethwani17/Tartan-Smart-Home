@@ -26,3 +26,4 @@ about Tartan's design, architecture, requirements, etc.
 - Rohan Jethwani (rjethwan)
 - Alec Zaiane (adzaiane)
 - Daniel Thai (dthai)
+
