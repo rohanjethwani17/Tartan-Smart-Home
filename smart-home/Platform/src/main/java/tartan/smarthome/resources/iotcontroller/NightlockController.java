@@ -90,8 +90,6 @@ public class NightlockController {
         // Apply lock state based on current time
         if (lockActive) {
             activateNightLock();
-        } else {
-            deactivateNightLock();
         }
 
         return lockActive;
