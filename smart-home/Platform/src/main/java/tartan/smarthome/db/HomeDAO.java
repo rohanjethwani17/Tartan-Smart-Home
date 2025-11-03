@@ -19,18 +19,21 @@ public class HomeDAO extends AbstractDAO<TartanHomeData> {
     }
 
     /**
-     * Save the taratn home data to the database
+     * Save the tartan home data to the database
+     *
      * @param tartanHomeData the data to save
      */
     public void create(TartanHomeData tartanHomeData) {
-        try {
+        // https://stackoverflow.com/questions/24041170/how-to-make-use-of-try-catch-and-resource-statement-for-closing-the-connection
+        // + IDE transformation to try-with-resources
+        try (Session session = factory.openSession()) {
             // There is a dropwizard way to establish a Hibernate session outside of Jersey
             // but this is more reliable
-            Session session = factory.openSession();
             session.beginTransaction();
             session.save(tartanHomeData);
             session.getTransaction().commit();
-            session.close();
-        } catch (SessionException sx) {/* Nothing to do */ }
+        } catch (SessionException sx) {
+            /* Nothing to do */
+        }
     }
 }
