@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM python:3.10
 WORKDIR /app
 COPY simple_server.py /app
 EXPOSE 5050

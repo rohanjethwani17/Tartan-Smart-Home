@@ -1,5 +1,7 @@
 package tartan.smarthome.resources;
 
+import tartan.smarthome.resources.iotcontroller.IoTControlManager;
+import tartan.smarthome.resources.iotcontroller.IoTValues;
 import io.dropwizard.hibernate.UnitOfWork;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,22 +10,26 @@ import tartan.smarthome.core.TartanHome;
 import tartan.smarthome.core.TartanHomeData;
 import tartan.smarthome.core.TartanHomeValues;
 import tartan.smarthome.db.HomeDAO;
-import tartan.smarthome.resources.iotcontroller.IoTControlManager;
-import tartan.smarthome.resources.iotcontroller.IoTValues;
 
+import java.time.LocalTime;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /***
- * The service layer for the Tartan Home System. Additional inputs and control mechanisms should be accessed here.
+ * The service layer for the Tartan Home System. Additional inputs and control
+ * mechanisms should be accessed here.
  * Currently, this is mainly a proxy to make the existing hardware RESTful.
  */
 public class TartanHomeService {
 
-    // a logging system
-    private static final Logger LOGGER = LoggerFactory.getLogger(TartanHomeService.class);
     // the controller for the house
     private IoTControlManager controller;
+
+    // a logging system
+    private static final Logger LOGGER = LoggerFactory.getLogger(TartanHomeService.class);
+
     // Home configuration parameters
     private String name;
     private String address;
@@ -33,6 +39,11 @@ public class TartanHomeService {
     private String targetTemp;
     private String user;
     private String password;
+    private Boolean passcodeRequiredForLock;
+    private Boolean keylessEntryEnabled;
+    private List<String> authorizedDevices;
+    private LocalTime nightStart;
+    private LocalTime nightEnd;
 
     // status parameters
     private HomeDAO homeDAO;
@@ -44,7 +55,7 @@ public class TartanHomeService {
 
     /**
      * Create a new Tartan Home Service
-     *
+     * 
      * @param dao handle to a database
      */
     public TartanHomeService(HomeDAO dao) {
@@ -53,7 +64,7 @@ public class TartanHomeService {
 
     /**
      * Initialize the settings
-     *
+     * 
      * @param settings     the house settings
      * @param historyTimer historian delay
      */
@@ -70,6 +81,11 @@ public class TartanHomeService {
         this.targetTemp = settings.getTargetTemp();
         this.alarmDelay = settings.getAlarmDelay();
         this.alarmPasscode = settings.getAlarmPasscode();
+        this.passcodeRequiredForLock = settings.getPasscodeRequiredForLock();
+        this.keylessEntryEnabled = settings.getKeylessEntryEnabled();
+        this.authorizedDevices = settings.getAuthorizedDevices();
+        this.nightStart = settings.getNightStart();
+        this.nightEnd = settings.getNightEnd();
 
         this.historyTimer = historyTimer * 1000;
         this.logHistory = true;
@@ -84,9 +100,15 @@ public class TartanHomeService {
         userSettings.setAlarmDelay(Integer.parseInt(this.alarmDelay));
         userSettings.setTargetTempSetting(Integer.parseInt(this.targetTemp));
         userSettings.setAlarmPassCode(this.alarmPasscode);
+        userSettings.setPasscodeRequiredForLock(this.passcodeRequiredForLock);
+        userSettings.setKeylessEntryEnabled(this.keylessEntryEnabled);
+        userSettings.setAuthorizedDevices(this.authorizedDevices);
+        userSettings.setNightStart(this.nightStart);
+        userSettings.setNightEnd(this.nightEnd);
+
         controller.updateSettings(userSettings);
 
-        LOGGER.info("House {} configured", this.name);
+        LOGGER.info("House " + this.name + " configured");
     }
 
     /**
@@ -109,13 +131,13 @@ public class TartanHomeService {
                         TartanHome state = getState();
                         if (state != null) {
                             TartanHomeData home = new TartanHomeData(state);
-                            LOGGER.info("Logging {}@{} state", name, address);
+                            LOGGER.info("Logging " + name + "@" + address + " state");
                             logHistory(home);
                         }
 
                         Thread.sleep(historyTimer);
                     } catch (Exception x) {
-                        LOGGER.error("Failed to save {}@{} state: {}", name, address, x.toString());
+                        LOGGER.error("Failed to save " + name + "@" + address + " state");
                     }
                 }
             }
@@ -124,7 +146,7 @@ public class TartanHomeService {
 
     /**
      * Save the current state of the house
-     *
+     * 
      * @param tartanHomeData the current state in a Hibernate-aware format
      */
     @UnitOfWork
@@ -134,7 +156,7 @@ public class TartanHomeService {
 
     /**
      * Get the name for this house
-     *
+     * 
      * @return the house name
      */
     public String getName() {
@@ -148,7 +170,7 @@ public class TartanHomeService {
 
     /**
      * Get the house address
-     *
+     * 
      * @return the address
      */
     public String getAddress() {
@@ -157,7 +179,7 @@ public class TartanHomeService {
 
     /**
      * Get the house conncected state
-     *
+     * 
      * @return true if connected; false otherwise
      */
     public Boolean isConnected() {
@@ -166,43 +188,49 @@ public class TartanHomeService {
 
     /**
      * Convert humidifier state
-     *
+     * 
      * @param tartanHome the home
      * @return true if on; false if off; otherwise null
      */
     private Boolean toIoTHumdifierState(TartanHome tartanHome) {
-        if (tartanHome.getHumidifier().equals(TartanHomeValues.OFF)) return false;
-        else if (tartanHome.getHumidifier().equals(TartanHomeValues.ON)) return true;
+        if (tartanHome.getHumidifier().equals(TartanHomeValues.OFF))
+            return false;
+        else if (tartanHome.getHumidifier().equals(TartanHomeValues.ON))
+            return true;
         return null;
     }
 
     /**
      * Convert light state
-     *
+     * 
      * @param tartanHome the home
      * @return true if on; false if off; otherwise null
      */
     private Boolean toIoTLightState(TartanHome tartanHome) {
-        if (tartanHome.getLight().equals(TartanHomeValues.OFF)) return false;
-        else if (tartanHome.getLight().equals(TartanHomeValues.ON)) return true;
+        if (tartanHome.getLight().equals(TartanHomeValues.OFF))
+            return false;
+        else if (tartanHome.getLight().equals(TartanHomeValues.ON))
+            return true;
         return null;
     }
 
     /**
      * Convert alarm armed state
-     *
+     * 
      * @param tartanHome the home
      * @return true if armed; false if disarmed; otherwise null
      */
     private Boolean toIoTAlarmArmedState(TartanHome tartanHome) {
-        if (tartanHome.getAlarmArmed().equals(TartanHomeValues.DISARMED)) return false;
-        else if (tartanHome.getAlarmArmed().equals(TartanHomeValues.ARMED)) return true;
+        if (tartanHome.getAlarmArmed().equals(TartanHomeValues.DISARMED))
+            return false;
+        else if (tartanHome.getAlarmArmed().equals(TartanHomeValues.ARMED))
+            return true;
         return null;
     }
 
     /**
      * Convert alarm delay
-     *
+     * 
      * @param tartanHome the home
      * @return the converted delay
      */
@@ -212,7 +240,7 @@ public class TartanHomeService {
 
     /**
      * Convert alarm passcode
-     *
+     * 
      * @param tartanHome the home
      * @return the passcode
      */
@@ -222,43 +250,49 @@ public class TartanHomeService {
 
     /**
      * Convert door state
-     *
+     * 
      * @param tartanHome the home
      * @return true if open; false if closed' otherwise null
      */
     private Boolean toIoTDoorState(TartanHome tartanHome) {
-        if (tartanHome.getDoor().equals(TartanHomeValues.CLOSED)) return false;
-        else if (tartanHome.getDoor().equals(TartanHomeValues.OPEN)) return true;
+        if (tartanHome.getDoor().equals(TartanHomeValues.CLOSED))
+            return false;
+        else if (tartanHome.getDoor().equals(TartanHomeValues.OPEN))
+            return true;
         return null;
     }
 
     /**
      * Convert proximity state
-     *
+     * 
      * @param tartanHome the home
      * @return true if occupied; false if empty; otherwise null
      */
     private Boolean toIoTProximityState(TartanHome tartanHome) {
-        if (tartanHome.getProximity().equals(TartanHomeValues.OCCUPIED)) return true;
-        else if (tartanHome.getProximity().equals(TartanHomeValues.EMPTY)) return false;
+        if (tartanHome.getProximity().equals(TartanHomeValues.OCCUPIED))
+            return true;
+        else if (tartanHome.getProximity().equals(TartanHomeValues.EMPTY))
+            return false;
         return null;
     }
 
     /**
      * Convert alarm active state
-     *
+     * 
      * @param tartanHome the home
      * @return true if active; false if inactive; otherwise null
      */
     private Boolean toIoTAlarmActiveState(TartanHome tartanHome) {
-        if (tartanHome.getAlarmActive().equals(TartanHomeValues.ACTIVE)) return true;
-        else if (tartanHome.getAlarmActive().equals(TartanHomeValues.INACTIVE)) return false;
+        if (tartanHome.getAlarmActive().equals(TartanHomeValues.ACTIVE))
+            return true;
+        else if (tartanHome.getAlarmActive().equals(TartanHomeValues.INACTIVE))
+            return false;
         return null;
     }
 
     /**
      * Convert heater state
-     *
+     * 
      * @param tartanHome the home
      * @return true if on; false if off; otherwise null
      */
@@ -275,7 +309,7 @@ public class TartanHomeService {
 
     /**
      * Convert chiller state
-     *
+     * 
      * @param tartanHome the home
      * @return true if on; false if off; otherwise null
      */
@@ -292,7 +326,7 @@ public class TartanHomeService {
 
     /**
      * Convert target temperature state
-     *
+     * 
      * @param tartanHome the home
      * @return converted target temperature
      */
@@ -302,19 +336,43 @@ public class TartanHomeService {
 
     /**
      * Convert HVAC mode state
-     *
+     * 
      * @param tartanHome the home
      * @return Heater, Chiller; or null
      */
     private String toIoTHvacModeState(TartanHome tartanHome) {
-        if (tartanHome.getHvacMode().equals(TartanHomeValues.HEAT)) return "Heater";
-        else if (tartanHome.getHvacMode().equals(TartanHomeValues.COOL)) return "Chiller";
+        if (tartanHome.getHvacMode().equals(TartanHomeValues.HEAT))
+            return "Heater";
+        else if (tartanHome.getHvacMode().equals(TartanHomeValues.COOL))
+            return "Chiller";
         return null;
     }
 
     /**
+     * Set the house state in the hardware
+     * 
+     * @param h the new state
+     */
+    public void setState(TartanHome h) {
+        synchronized (controller) {
+
+            TartanState userSettings = new TartanState();
+            if (h.getAlarmDelay() != null) {
+                this.alarmDelay = h.getAlarmDelay();
+                userSettings.setAlarmDelay(Integer.parseInt(this.alarmDelay));
+
+            }
+            if (h.getTargetTemp() != null) {
+                this.targetTemp = h.getTargetTemp();
+                userSettings.setTargetTempSetting(Integer.parseInt(this.targetTemp));
+            }
+            controller.processStateUpdate(toIotState(h));
+        }
+    }
+
+    /**
      * Fetch the current state of the house
-     *
+     * 
      * @return the current state
      */
     public TartanHome getState() {
@@ -327,9 +385,18 @@ public class TartanHomeService {
         tartanHome.setTargetTemp(this.targetTemp);
         tartanHome.setAlarmDelay(this.alarmDelay);
 
+        tartanHome.setPasscodeRequiredForLock(this.passcodeRequiredForLock);
+        tartanHome.setKeylessEntryEnabled(this.keylessEntryEnabled);
+        tartanHome.setAuthorizedDevices(this.authorizedDevices);
+
+        tartanHome.setNightStart(this.nightStart);
+        tartanHome.setNightEnd(this.nightEnd);
+
         tartanHome.setEventLog(controller.getLogMessages());
         tartanHome.setAuthenticated(String.valueOf(this.authenticated));
 
+        // TODO use TartanState here instead of Map<String, Object>.
+        // Maybe extract big for (String s: keys) loop into function/class?
         TartanState state = null;
         synchronized (controller) {
             state = controller.getCurrentState();
@@ -352,6 +419,7 @@ public class TartanHomeService {
             tartanHome.setAlarmActive(TartanHomeValues.UNKNOWN);
             tartanHome.setHvacMode(TartanHomeValues.UNKNOWN);
             tartanHome.setHvacState(TartanHomeValues.UNKNOWN);
+            tartanHome.setDoorLocked(TartanHomeValues.UNKNOWN);
 
             return tartanHome;
         }
@@ -396,7 +464,8 @@ public class TartanHomeService {
             LOGGER.info("Home alarm state updated to '{}'", newAlarmState);
         }
         if (state.getAlarmActiveState() != null) {
-            String newAlarmActiveState = state.getAlarmActiveState() ? TartanHomeValues.ACTIVE : TartanHomeValues.INACTIVE;
+            String newAlarmActiveState = state.getAlarmActiveState() ? TartanHomeValues.ACTIVE
+                    : TartanHomeValues.INACTIVE;
             tartanHome.setAlarmActive(newAlarmActiveState);
             LOGGER.info("Home alarm active state updated to '{}'", newAlarmActiveState);
         }
@@ -418,41 +487,35 @@ public class TartanHomeService {
                 LOGGER.info("Home HVAC state updated to {}", TartanHomeValues.OFF);
             }
         }
+        if (state.getDoorLockedState() != null) {
+            if (state.getDoorLockedState().equals(true)) {
+                LOGGER.info("Home doorLocked mode updated to locked");
+                LOGGER.info("Home doorLockRequest mode updated to lock");
+                tartanHome.setDoorLocked("locked");
+                tartanHome.setDoorLockRequest("lock");
+            } else {
+                LOGGER.info("Home doorLocked mode updated to unlocked");
+                LOGGER.info("Home doorLockRequest mode updated to unlock");
+                tartanHome.setDoorLocked("unlocked");
+                tartanHome.setDoorLockRequest("unlock");
+            }
+        }
+        if (state.getDetectedDevices() != null) {
+            tartanHome.setDetectedDevices(state.getDetectedDevices());
+        }
 
         return tartanHome;
     }
 
     /**
-     * Set the house state in the hardware
-     *
-     * @param h the new state
-     */
-    public void setState(TartanHome h) {
-        synchronized (controller) {
-
-            TartanState userSettings = new TartanState();
-            if (h.getAlarmDelay() != null) {
-                this.alarmDelay = h.getAlarmDelay();
-                userSettings.setAlarmDelay(Integer.parseInt(this.alarmDelay));
-
-            }
-            if (h.getTargetTemp() != null) {
-                this.targetTemp = h.getTargetTemp();
-                userSettings.setTargetTempSetting(Integer.parseInt(this.targetTemp));
-            }
-            controller.updateSettings(userSettings);
-            controller.processStateUpdate(toIotState(h));
-        }
-    }
-
-    /**
      * Convert the state to a format suitable for the hardware
-     *
+     * 
      * @param tartanHome the state
      * @return a map of settings appropriate for the hardware
      */
     private TartanState toIotState(TartanHome tartanHome) {
-        // TODO use TartanState within this function instead of converting between Map<String, Object> and it.
+        // TODO use TartanState within this function instead of converting between
+        // Map<String, Object> and it.
         Map<String, Object> state = new Hashtable<>();
 
         if (tartanHome.getProximity() != null) {
@@ -492,6 +555,13 @@ public class TartanHomeService {
             controller.updateSettings(TartanState.fromStateMap(ht));
         }
 
+        if (tartanHome.getPasscodeRequiredForLock() != null) {
+            Boolean passcodeRequired = tartanHome.getPasscodeRequiredForLock();
+
+            state.put(IoTValues.PASSCODE_REQUIRED_FOR_LOCK, passcodeRequired);
+
+        }
+
         if (tartanHome.getHvacMode() != null) {
             if (tartanHome.getHvacMode().equals(TartanHomeValues.HEAT)) {
                 state.put(IoTValues.HVAC_MODE, "Heater");
@@ -509,6 +579,26 @@ public class TartanHomeService {
             }
         }
 
+        if (tartanHome.getDoorLocked() != null) {
+            if (tartanHome.getDoorLocked().equals("locked")) {
+                state.put(IoTValues.DOOR_LOCKED_STATE, true);
+            } else {
+                state.put(IoTValues.DOOR_LOCKED_STATE, false);
+            }
+        }
+
+        if (tartanHome.getDoorLockRequest() != null) {
+            if (tartanHome.getDoorLockRequest().equals("lock")) {
+                state.put(IoTValues.DOOR_LOCK_REQUEST, true);
+            } else {
+                state.put(IoTValues.DOOR_LOCK_REQUEST, false);
+            }
+        }
+
+        if (tartanHome.getDetectedDevices() != null) {
+            state.put(IoTValues.DETECTED_DEVICES, tartanHome.getDetectedDevices());
+        }
+
         for (Map.Entry<String, Object> e : state.entrySet()) {
             LOGGER.info("State: " + e.getKey() + "=" + e.getValue());
         }
@@ -518,7 +608,7 @@ public class TartanHomeService {
 
     /**
      * Connect to the house
-     *
+     * 
      * @throws TartanHomeConnectException exception passed when connect fails
      */
     public void connect() throws TartanHomeConnectException {

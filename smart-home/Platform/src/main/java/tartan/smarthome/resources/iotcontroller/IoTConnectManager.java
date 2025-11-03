@@ -1,28 +1,24 @@
 package tartan.smarthome.resources.iotcontroller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import tartan.smarthome.resources.TartanState;
 
-import java.util.StringTokenizer;
-import java.util.Vector;
+import java.util.*;
 
 /**
  * Manages connection to the IoT house
- * <p>
+ *
  * Project: LG Exec Ed Program
  * Copyright: Copyright (c) 2015 Jeffrey S. Gennari
  * Versions:
  * 1.0 November 2015 - initial version
  */
 public class IoTConnectManager {
-    private static final Logger LOGGER = LoggerFactory.getLogger(IoTConnectManager.class);
     // Connection to the house
     private IoTConnection connection;
 
     /**
      * Set up the connection manager with a connection
-     *
+     * 
      * @param conn the (established) connection
      */
     public IoTConnectManager(IoTConnection conn) {
@@ -38,12 +34,12 @@ public class IoTConnectManager {
 
     /**
      * Get the state from the house
-     *
+     * 
      * @return the new state of things
      */
     public synchronized TartanState getState() {
-        
-        LOGGER.info("Requesting state");
+
+        System.out.println("Requesting state");
 
         synchronized (connection) {
             String update = connection.sendMessageToHouse(IoTValues.GET_STATE + IoTValues.MSG_END);
@@ -55,10 +51,9 @@ public class IoTConnectManager {
         }
     }
 
-
     /**
      * Send a state change request to the house
-     *
+     * 
      * @param state the new state
      * @return true if the state was accepted; false otherwise
      */
@@ -83,7 +78,8 @@ public class IoTConnectManager {
             newStateVector.add(IoTValues.ALARM_ACTIVE + IoTValues.PARAM_EQ + alarmActiveStateString);
         }
         if (state.getHumidifierState() != null) {
-            String humidifierStateString = state.getHumidifierState() ? IoTValues.HUMIDIFIER_ON : IoTValues.HUMIDIFIER_OFF;
+            String humidifierStateString = state.getHumidifierState() ? IoTValues.HUMIDIFIER_ON
+                    : IoTValues.HUMIDIFIER_OFF;
             newStateVector.add(IoTValues.HUMIDIFIER_STATE + IoTValues.PARAM_EQ + humidifierStateString);
         }
         if (state.getChillerOnState() != null) {
@@ -94,9 +90,23 @@ public class IoTConnectManager {
             String heaterStateString = state.getHeaterOnState() ? IoTValues.HEATER_ON : IoTValues.HEATER_OFF;
             newStateVector.add(IoTValues.HEATER_STATE + IoTValues.PARAM_EQ + heaterStateString);
         }
+        if (state.getDoorLockedState() != null) {
+            String doorLockedStateString = state.getDoorLockedState() ? IoTValues.DOOR_LOCKED : IoTValues.DOOR_UNLOCKED;
+            newStateVector.add(IoTValues.DOOR_LOCKED_STATE + IoTValues.PARAM_EQ + doorLockedStateString);
+        }
+        if (state.getIntruderDetected() != null) {
+            String intruderStateString = state.getIntruderDetected() ? IoTValues.INTRUDER_DETECTED
+                    : IoTValues.NO_INTRUDER_DETECTED;
+            newStateVector.add(IoTValues.INTRUDER_STATE + IoTValues.PARAM_EQ + intruderStateString);
+        }
+        if (state.getAllClear() != null) {
+            String allClearStateString = state.getAllClear() ? IoTValues.ALL_CLEAR : IoTValues.NOT_ALL_CLEAR;
+            newStateVector.add(IoTValues.ALL_CLEAR_STATE + IoTValues.PARAM_EQ + allClearStateString);
+        }
 
         StringBuffer newState = new StringBuffer();
-        // merge the newStateVector into the newState buffer by separating entries with IoTValues.PARAM_DELIM
+        // merge the newStateVector into the newState buffer by separating entries with
+        // IoTValues.PARAM_DELIM
         for (int i = 0; i < newStateVector.size(); i++) {
             newState.append(newStateVector.get(i));
             if (i < newStateVector.size() - 1) {
@@ -104,9 +114,9 @@ public class IoTConnectManager {
             }
         }
 
-        StringBuffer msg
-                = new StringBuffer(IoTValues.SET_STATE + IoTValues.MSG_DELIM + newState.toString() + IoTValues.MSG_END);
-        System.out.println("New state for house: " + msg.toString());
+        StringBuffer msg = new StringBuffer(
+                IoTValues.SET_STATE + IoTValues.MSG_DELIM + newState.toString() + IoTValues.MSG_END);
+        System.out.println("ConnectManager newState: " + msg.toString());
 
         String response = null;
         synchronized (connection) {
@@ -123,7 +133,7 @@ public class IoTConnectManager {
 
     /**
      * Process the new state reported by the house
-     *
+     * 
      * @param stateUpdateMsg the new state message
      * @return the new state
      */
@@ -136,7 +146,7 @@ public class IoTConnectManager {
             return null;
         }
 
-        System.out.println("State Update: " + stateUpdateMsg);
+        System.out.println("ConnectManager state update: " + stateUpdateMsg);
         TartanState state = new TartanState();
 
         String[] req = stateUpdateMsg.split(IoTValues.MSG_DELIM);
@@ -193,6 +203,26 @@ public class IoTConnectManager {
                 } else {
                     state.setHvacSetting("Chiller");
                 }
+            } else if (data[0].equals(IoTValues.DOOR_LOCKED_STATE)) {
+                if (val == 1) {
+                    state.setDoorLockedState(true);
+                    state.setDoorLockRequest(true);
+                } else {
+                    state.setDoorLockedState(false);
+                    state.setDoorLockRequest(false);
+                }
+            } else if (data[0].equals(IoTValues.INTRUDER_STATE)) {
+                if (val == 1) {
+                    state.setIntruderDetected(true);
+                } else {
+                    state.setIntruderDetected(false);
+                }
+            } else if (data[0].equals(IoTValues.ALL_CLEAR_STATE)) {
+                if (val == 1) {
+                    state.setAllClear(true);
+                } else {
+                    state.setAllClear(false);
+                }
             }
         }
         return state;
@@ -200,7 +230,7 @@ public class IoTConnectManager {
 
     /**
      * Get the connected state
-     *
+     * 
      * @return true if connected, false otherwise
      */
     public Boolean isConnected() {

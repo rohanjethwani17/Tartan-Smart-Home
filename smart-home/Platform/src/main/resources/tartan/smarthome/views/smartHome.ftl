@@ -19,11 +19,43 @@ See -->
                 var targetTemp = $('#targetTemp').val();
                 var humidifier = $('#humidifier').val();
                 var armAlarm = $('#armAlarm').val();
-                var passcode = $('#alarmPasscode').val();
+                var passcode = $('#alarmPasscode').val()?.trim() || $('#doorPasscode').val()?.trim() || undefined;
                 var hvacMode = $('#hvacMode').val();
+                var doorLocked = '${tartanHome.doorLocked}';
+                var doorLockRequest = (doorLocked != "locked") ? "unlock" : "lock";
+                var detectedDevicesInput = $('#detectedDevices').val();
+                var detectedDevicesArray = detectedDevicesInput
+                    ?.split(',')              
+                    .map(function(item) {
+                        return item.trim();  
+                    })
+                    .filter(function(item) {
+                        return item.length > 0;
+                    }) || [];
 
-                return JSON.stringify({"door":door,"light":light,"targetTemp":targetTemp,"humidifier":humidifier,"alarmArmed":armAlarm,"alarmDelay":alarmDelay,"alarmPasscode":passcode});
+                return JSON.stringify({"door":door,"light":light,"targetTemp":targetTemp,"humidifier":humidifier,"alarmArmed":armAlarm,"alarmDelay":alarmDelay,"alarmPasscode":passcode, "doorLocked":doorLocked,
+                "doorLockRequest": doorLockRequest, 
+                "detectedDevices": detectedDevicesArray});
             }
+
+            $("#lock_button").click(function() {
+                let state = JSON.parse(updateState());
+
+                state.doorLockRequest = (state.doorLocked == "locked") ? "unlock" : "lock";
+
+                $.ajax({
+                    type: 'POST',
+                    contentType: 'application/json',
+                    url:  '/smarthome/update/${tartanHome.name}',
+                    data: JSON.stringify(state),
+                    success: function(data) {
+                        location.reload(true);
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        alert("Could not update ${tartanHome.name}");
+                    },
+                });
+            });
 
             // Auto scroll
             $('#log').scrollTop($('#log')[0].scrollHeight);
@@ -181,6 +213,53 @@ div {
         <strong>
             Alarm delay: <input id="alarmDelay" type="number" value="${tartanHome.alarmDelay}" /> seconds
         </strong>
+    </p>
+    <hr>
+    <h3>Electronic Operation</h3>
+    <p>
+        <#if tartanHome.doorLocked != "locked">
+            <strong><font color="green">Door Unlocked</font></strong>
+        <#else>
+            <strong><font color="red">Door Locked</font></strong>
+        </#if>
+    </p>
+    <p>
+        <#if tartanHome.passcodeRequiredForLock == true>
+            <label for="doorPasscode">Door passcode: </label><input id="doorPasscode" type="text" />
+        </#if>
+        <button id="lock_button">Lock/unlock</button>
+    </p>
+    <hr>
+    <h3>Keyless Entry</h3>
+    <p>
+    <#if tartanHome.keylessEntryEnabled == true>
+        <strong><font color="green">Enabled</font></strong>
+        <br>
+        <label for="detectedDevices">Simulated Detected Devices (comma-separated):</label>
+        <input id="detectedDevices" type="text" placeholder="e.g. device4, device5" />
+        <br>
+        <#if tartanHome.authorizedDevices?size gt 0>
+        <label>Authorized Devices:</label>
+        <ul>
+        <#list tartanHome.authorizedDevices as device>
+            <li>${device}</li>
+        </#list>
+        </ul>
+    <#else>
+        <p>No authorized devices</p>
+    </#if>
+    <#else>
+        <strong><font color="red">Disabled</font></strong>
+    </#if>
+    </p>
+    <hr>
+    <h3>Night Lock Schedule</h3>
+    <p>
+        <label>Night Lock Start:</label>
+        <strong>${tartanHome.nightStart}</strong>
+        <br>
+        <label>Night Lock End:</label>
+        <strong>${tartanHome.nightEnd}</strong>
     </p>
     <hr>
     <h3> Event log</h3>
