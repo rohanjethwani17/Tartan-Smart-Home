@@ -9,6 +9,7 @@ import tartan.smarthome.TartanHomeSettings;
 import tartan.smarthome.auth.TartanUser;
 import tartan.smarthome.core.TartanHome;
 import tartan.smarthome.db.HomeDAO;
+import tartan.smarthome.views.ExperimentReportView;
 import tartan.smarthome.views.SmartHomeView;
 
 import jakarta.ws.rs.*;
@@ -19,7 +20,10 @@ import java.util.List;
 
 /**
  * The resource class implements the HTTP handlers via Jersey.
- *  @see <a href="https://www.dropwizard.io/1.0.0/docs/getting-started.html#creating-a-resource-class">Dropwizard Resouces</a>
+ * 
+ * @see <a href=
+ *      "https://www.dropwizard.io/1.0.0/docs/getting-started.html#creating-a-resource-class">Dropwizard
+ *      Resouces</a>
  */
 @Path("/smarthome")
 @Produces(MediaType.APPLICATION_JSON)
@@ -31,9 +35,27 @@ public class TartanResource {
     private ArrayList<TartanHomeService> services;
 
     /**
+     * Experiment report endpoint: shows all houses, their group, config, and
+     * usage/cost
+     */
+    @GET
+    @Produces({ MediaType.TEXT_HTML, MediaType.APPLICATION_JSON })
+    @Path("/experiment-report")
+    @Timed
+    @UnitOfWork
+    public ExperimentReportView experimentReport(@Auth TartanUser user) {
+        List<TartanHome> homes = new ArrayList<>();
+        for (TartanHomeService service : services) {
+            homes.add(service.getState());
+        }
+        return new ExperimentReportView(homes, "config.docker.yml");
+    }
+
+    /**
      * Create and connect to a list of houses
-     * @param houses the settings for each hose
-     * @param homeDAO the historian
+     * 
+     * @param houses       the settings for each hose
+     * @param homeDAO      the historian
      * @param historyTimer how often to log history
      */
     public TartanResource(List<TartanHomeSettings> houses, HomeDAO homeDAO, Integer historyTimer) {
@@ -61,6 +83,7 @@ public class TartanResource {
 
     /**
      * Start the historian
+     * 
      * @param service the service to start logging
      */
     public void startHistorian(TartanHomeService service) {
@@ -71,6 +94,7 @@ public class TartanResource {
 
     /**
      * Fetch the service for a house
+     * 
      * @param houseName the target house
      * @return the service or null if not found
      */
@@ -85,21 +109,23 @@ public class TartanResource {
 
     /**
      * Fetch the current house state via HTTP GET. Managed by Jersey
+     * 
      * @param house the house
-     * @param user the user allowed to access this house
+     * @param user  the user allowed to access this house
      * @return a view of the house or null
      */
     @GET
-    @Produces({MediaType.TEXT_HTML, MediaType.APPLICATION_JSON})
+    @Produces({ MediaType.TEXT_HTML, MediaType.APPLICATION_JSON })
     @Path("/state/{house}")
     @Timed
     @UnitOfWork
-    public SmartHomeView state(@PathParam("house") String house,  @Auth TartanUser user) {
+    public SmartHomeView state(@PathParam("house") String house, @Auth TartanUser user) {
         // There are better ways to check authorization, but this works fine
         if (user.getHouse().equals(house)) {
             LOGGER.info("Received a house GET for house: " + house);
             TartanHomeService service = getHomeService(house);
-            if (service == null) return null;
+            if (service == null)
+                return null;
 
             return new SmartHomeView(service.getState());
         }
@@ -108,9 +134,10 @@ public class TartanResource {
 
     /**
      * update the house state via an HTTP POST. Managed by Jersey
+     * 
      * @param house the house
-     * @param user the user allowed to access this house
-     * @param h the new state
+     * @param user  the user allowed to access this house
+     * @param h     the new state
      * @return either HTTP OK or UNAUTHORIZED
      */
     @POST
@@ -135,4 +162,3 @@ public class TartanResource {
                 .build();
     }
 }
-

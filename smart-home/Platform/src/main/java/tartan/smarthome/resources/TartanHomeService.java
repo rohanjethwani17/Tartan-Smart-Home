@@ -12,10 +12,15 @@ import tartan.smarthome.core.TartanHomeValues;
 import tartan.smarthome.db.HomeDAO;
 
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.time.LocalDate;
+import java.time.temporal.WeekFields;
+import java.util.Locale;
 
 /***
  * The service layer for the Tartan Home System. Additional inputs and control
@@ -44,6 +49,15 @@ public class TartanHomeService {
     private List<String> authorizedDevices;
     private LocalTime nightStart;
     private LocalTime nightEnd;
+
+    // AB Testing parameters
+    private String groupExperiment;
+    private Boolean prevLightState;
+    private LocalTime timeLightMinutesUpdated;
+    private Long lightsOnDuration;
+
+    // Weekly usage tracking
+    private Map<String, Long> weeklyLightsOnUsage = new TreeMap<>();
 
     // status parameters
     private HomeDAO homeDAO;
@@ -87,14 +101,32 @@ public class TartanHomeService {
         this.nightStart = settings.getNightStart();
         this.nightEnd = settings.getNightEnd();
 
+        this.groupExperiment = settings.getGroupExperiment();
+        this.timeLightMinutesUpdated = LocalTime.now();
+        this.lightsOnDuration = 0L;
+        this.prevLightState = true;
+
+        // Calculate previous week (dummy previous week)
+        LocalDate now = LocalDate.now();
+        WeekFields weekFields = WeekFields.of(Locale.getDefault());
+        int currentWeek = now.get(weekFields.weekOfWeekBasedYear());
+        int currentYear = now.getYear();
+        int prevWeek = currentWeek - 1;
+        int prevYear = currentYear;
+        if (prevWeek < 1) {
+            prevYear = currentYear - 1;
+            // Get the last week number of the previous year
+            LocalDate lastDayPrevYear = LocalDate.of(prevYear, 12, 31);
+            prevWeek = lastDayPrevYear.get(weekFields.weekOfWeekBasedYear());
+        }
+        String prevYearWeekKey = prevYear + "-" + prevWeek;
+        weeklyLightsOnUsage.put(prevYearWeekKey, 0L);
+
         this.historyTimer = historyTimer * 1000;
         this.logHistory = true;
 
         // Create and initialize the controller for this house
         this.controller = new IoTControlManager(user, password, new StaticTartanStateEvaluator());
-
-        TartanHome temp = new TartanHome();
-        temp.setAlarmDelay(alarmDelay);
 
         TartanState userSettings = new TartanState();
         userSettings.setAlarmDelay(Integer.parseInt(this.alarmDelay));
@@ -392,8 +424,15 @@ public class TartanHomeService {
         tartanHome.setNightStart(this.nightStart);
         tartanHome.setNightEnd(this.nightEnd);
 
+        tartanHome.setGroupExperiment(this.groupExperiment);
+
         tartanHome.setEventLog(controller.getLogMessages());
         tartanHome.setAuthenticated(String.valueOf(this.authenticated));
+
+        LocalDate nowDate = LocalDate.now();
+        WeekFields weekFields = WeekFields.of(Locale.getDefault());
+        int currentWeek = nowDate.get(weekFields.weekOfWeekBasedYear());
+        int currentYear = nowDate.getYear();
 
         // TODO use TartanState here instead of Map<String, Object>.
         // Maybe extract big for (String s: keys) loop into function/class?
@@ -449,8 +488,33 @@ public class TartanHomeService {
             LOGGER.info("Home door state updated to '{}'", newDoorState);
         }
         if (state.getLightState() != null) {
-            String newLightState = state.getLightState() ? TartanHomeValues.ON : TartanHomeValues.OFF;
+            Boolean lightState = state.getLightState();
+            String newLightState = lightState ? TartanHomeValues.ON : TartanHomeValues.OFF;
             tartanHome.setLight(newLightState);
+            if (lightState) {
+                if (this.prevLightState != lightState) {
+                    this.timeLightMinutesUpdated = LocalTime.now();
+                } else {
+                    LocalTime now = LocalTime.now();
+                    Long diff = this.timeLightMinutesUpdated.until(now, ChronoUnit.MILLIS);
+                    this.timeLightMinutesUpdated = now;
+                    this.lightsOnDuration += diff;
+                }
+            } else {
+                if (prevLightState != lightState) {
+                    LocalTime now = LocalTime.now();
+                    Long diff = this.timeLightMinutesUpdated.until(now, ChronoUnit.MILLIS);
+                    this.timeLightMinutesUpdated = now;
+                    this.lightsOnDuration += diff;
+                }
+            }
+            this.prevLightState = lightState;
+            // Calculate current week key and update the map
+            String yearWeekKey = currentYear + "-" + currentWeek;
+            weeklyLightsOnUsage.put(yearWeekKey, this.lightsOnDuration);
+            // Set the map in the TartanHome object for UI/reporting
+            tartanHome.setWeeklyLightsOnUsage(weeklyLightsOnUsage);
+
             LOGGER.info("Home light state updated to '{}'", newLightState);
         }
         if (state.getProximityState() != null) {

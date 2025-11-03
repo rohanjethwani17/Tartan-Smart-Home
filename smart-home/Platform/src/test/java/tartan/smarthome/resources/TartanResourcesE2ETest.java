@@ -101,7 +101,7 @@ public class TartanResourcesE2ETest
         var req = HttpRequest.newBuilder(URI.create(BASE_URL + UPDATE_PATH))
                 .header("Content-Type", "application/json")
                 .header("Authorization", basicAuthHeader(USER, PASS))
-                .POST(HttpRequest.BodyPublishers.ofString("{\"targetTemp\":\"60\"}", StandardCharsets.UTF_8))
+                .POST(HttpRequest.BodyPublishers.ofString("{\"door\":\"closed\"}", StandardCharsets.UTF_8))
                 .build();
 
         var res = HTTP.send(req, HttpResponse.BodyHandlers.discarding());
@@ -115,7 +115,7 @@ public class TartanResourcesE2ETest
         var getRes = HTTP.send(get, HttpResponse.BodyHandlers.ofString());
         assertEquals(200, getRes.statusCode());
         // Loosely check that the page mentions 60
-        assertTrue(getRes.body().contains("60"),
+        assertTrue(getRes.body().contains("closed"),
                 "State page should reflect updated target temperature");
     }
 

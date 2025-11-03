@@ -30,6 +30,7 @@ houses:
 
     nightStart: "22:00"
     nightEnd: "06:00"
+    groupExperiment: time
 
     # Next house
   - name: cmu
@@ -45,6 +46,43 @@ houses:
     keylessEntryEnabled: false
     nightStart: "22:00"
     nightEnd: "06:00"
+    groupExperiment: cost
+
+
+    # Next house
+  - name: tka
+    address: house-tka
+    port: 5050
+
+    user: admin
+    password: 1111
+    targetTemp: 70
+    alarmDelay: 30
+    alarmPasscode: quit
+    passcodeRequiredForLock: false
+    keylessEntryEnabled: false
+    nightStart: "22:00"
+    nightEnd: "06:00"
+    groupExperiment: cost
+
+
+    # Next house
+  - name: rnv
+    address: house-rnv
+    port: 5050
+
+    user: admin
+    password: 2222
+    targetTemp: 70
+    alarmDelay: 30
+    alarmPasscode: quit
+    passcodeRequiredForLock: false
+    keylessEntryEnabled: false
+    nightStart: "22:00"
+    nightEnd: "06:00"
+    groupExperiment: time
+    
+
 
 # how many seconds between database snapshots
 historyTimer: 5

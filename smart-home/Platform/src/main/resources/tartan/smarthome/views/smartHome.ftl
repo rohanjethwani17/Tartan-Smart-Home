@@ -262,6 +262,36 @@ div {
         <strong>${tartanHome.nightEnd}</strong>
     </p>
     <hr>
+    <h3>Weekly Report</h3>
+    <p><strong>Group: ${tartanHome.groupExperiment}</strong></p>
+    <#-- Get all week keys as a list -->
+    <#assign weekKeys = tartanHome.weeklyLightsOnUsage?keys>
+
+    <#-- Get the current week -->
+    <#assign lastWeek = weekKeys[weekKeys?size - 1]>
+    <#assign lastValue = tartanHome.weeklyLightsOnUsage[lastWeek]>
+
+    <#-- Get the last week -->
+    <#assign secondLastWeek = weekKeys[weekKeys?size - 2]>
+    <#assign secondLastValue = tartanHome.weeklyLightsOnUsage[secondLastWeek]>
+    <#if tartanHome.groupExperiment == "time">
+        <h4>Current Total Light Usage</h4>
+        <p>
+            ${lastValue/(60*1000) % 60} minutes,
+            ${lastValue/1000 % 60} seconds
+        </p>
+        <h4>Last Week's Total Light Usage</h4>
+        <p>
+            ${secondLastValue/(60*1000) % 60} minutes,
+            ${secondLastValue/1000 % 60} seconds
+        </p>
+    <#else>
+        <h4>Current Total Light Electricity Cost</h4>
+        <p>${lastValue/(60*1000) * 0.05} CAD</p>
+        <h4>Last Week's Total Light Electricity Cost</h4>
+        <p>${secondLastValue/(60*1000) * 0.05} CAD</p>
+    </#if>
+    <hr>
     <h3> Event log</h3>
     <textarea id="log" rows="15" cols="150">
     <#list tartanHome.eventLog as i>
