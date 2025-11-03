@@ -48,10 +48,10 @@ public class TartanResource {
 
                     service.connect();
                     this.services.add(service);
-                    LOGGER.info("Connected to house " + service.getName() + " @ " + service.getAddress());
+                    LOGGER.info("Connected to house {} @ {}", service.getName(), service.getAddress());
 
                 } catch (TartanHomeConnectException thce) {
-                    LOGGER.error("Could not connect to house " + service.getName() + " @ " + service.getAddress());
+                    LOGGER.error("Could not connect to house {} @ {}", service.getName(), service.getAddress());
                 }
 
                 startHistorian(service);
@@ -119,7 +119,7 @@ public class TartanResource {
     @Timed
     public Response update(@PathParam("house") String house, @Auth TartanUser user, TartanHome h) {
         if (user.getHouse().equals(house)) {
-            LOGGER.info("Received a house POST to house " + house);
+            LOGGER.info("Received a house POST to house {}", house);
             TartanHomeService service = getHomeService(house);
             if (service != null) {
                 // tell the house about the update

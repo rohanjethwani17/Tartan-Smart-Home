@@ -6,7 +6,8 @@ package tartan.smarthome.resources.iotcontroller;
 public class UserLoginInfo {
 
     /** the user credentials */
-    private String userName, password;
+    private String userName;
+    private String password;
 
     public UserLoginInfo(String userName, String password) {
         this.userName = userName;
@@ -15,7 +16,7 @@ public class UserLoginInfo {
 
     /**
      *  Get the username
-     * @return the user name
+     * @return the username
      */
     public String getUserName() {
         return userName;
@@ -23,7 +24,7 @@ public class UserLoginInfo {
 
     /**
      * Set the username
-     * @param userName
+     * @param userName username
      */
     public void setUserName(String userName) {
         this.userName = userName;
@@ -31,7 +32,7 @@ public class UserLoginInfo {
 
     /**
      * Get password
-     * @return
+     * @return password of the user
      */
     public String getPassword() {
         return password;
@@ -39,7 +40,7 @@ public class UserLoginInfo {
 
     /**
      * Set password
-     * @param password
+     * @param password password to set
      */
     public void setPassword(String password) {
         this.password = password;
