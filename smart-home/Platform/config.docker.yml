@@ -47,13 +47,15 @@ houses:
     nightStart: "22:00"
     nightEnd: "06:00"
     groupExperiment: cost
+
+
     # Next house
   - name: tka
     address: house-tka
     port: 5050
 
     user: admin
-    password: 5678
+    password: 1111
     targetTemp: 70
     alarmDelay: 30
     alarmPasscode: quit
@@ -62,13 +64,15 @@ houses:
     nightStart: "22:00"
     nightEnd: "06:00"
     groupExperiment: cost
+
+
     # Next house
   - name: rnv
     address: house-rnv
     port: 5050
 
     user: admin
-    password: 5678
+    password: 2222
     targetTemp: 70
     alarmDelay: 30
     alarmPasscode: quit
