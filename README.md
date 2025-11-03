@@ -11,12 +11,18 @@ The build instructions can be found [here](./docs/build_instructions.md).
 ### Automated Deployment
 
 Deployment is handled by `.github/workflows/deploy.yml` and is completely automated:
+
 - When a new commit is pushed to main (via a PR merge), the workflow automatically:
-  1. Builds and tests the code
-  2. Tags the current running version as `:prev` (for rollback)
-  3. Builds new Docker containers
-  4. Deploys the new version to Cybera
-  
+    1. Builds and tests the code
+    2. Tags the current running version as `:prev` (for rollback)
+    3. Builds new Docker containers
+    4. Deploys the new version to Cybera
+
+- To manually deploy, navigate to the `smart-home` directory, and run
+  `docker compose -f docker-compose-backend.yml --build up -d`
+    - This will run the *backend only*
+- To run house 'frontend' house simulators, run `docker compose -f docker-compose-frontend.yml --build up -d`
+
 The deployment process ensures that the previous version is always preserved for quick rollback.
 
 ### Rollback to Previous Version
@@ -33,6 +39,7 @@ cd ~/prod/smart-home
 ```
 
 This script will:
+
 - Verify that previous versions exist
 - Tag previous versions as active
 - Restart the backend services with the previous version
