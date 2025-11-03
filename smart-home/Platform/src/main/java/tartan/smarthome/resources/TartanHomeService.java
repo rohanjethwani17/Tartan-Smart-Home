@@ -398,6 +398,7 @@ public class TartanHomeService {
                 this.targetTemp = h.getTargetTemp();
                 userSettings.setTargetTempSetting(Integer.parseInt(this.targetTemp));
             }
+            controller.updateSettings(userSettings);
             controller.processStateUpdate(toIotState(h));
         }
     }
