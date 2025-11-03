@@ -1,0 +1,9 @@
+services:
+  house-cmu:
+    build: HouseSimulator/
+    ports:
+      - "5051:5050"
+  house-mse:
+    build: HouseSimulator/
+    ports:
+      - "5050:5050"

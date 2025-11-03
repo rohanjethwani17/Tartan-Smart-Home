@@ -1,10 +1,18 @@
 package tartan.smarthome;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Nullable;
+
 import org.hibernate.validator.constraints.NotEmpty;
 
 /**
- * This is Jackson-compatible a configuration class for the initial configuration setting in the primiary
+ * This is Jackson-compatible a configuration class for the initial
+ * configuration setting in the primiary
  * YAML confguration file. See that file for definitions
  */
 public class TartanHomeSettings {
@@ -40,6 +48,63 @@ public class TartanHomeSettings {
     @NotEmpty
     @JsonProperty
     private String alarmPasscode;
+
+    @NotEmpty
+    @JsonProperty
+    private Boolean passcodeRequiredForLock;
+
+    @NotEmpty
+    @JsonProperty
+    private Boolean keylessEntryEnabled;
+
+    @JsonProperty
+    private List<String> authorizedDevices = new ArrayList<>();
+
+    @JsonProperty
+    private LocalTime nightStart;
+
+    @JsonProperty
+    private LocalTime nightEnd;
+
+    public LocalTime getNightStart() {
+        return nightStart;
+    }
+
+    public void setNightStart(LocalTime nightStart) {
+        this.nightStart = nightStart;
+    }
+
+    public LocalTime getNightEnd() {
+        return nightEnd;
+    }
+
+    public void setNightEnd(LocalTime nightEnd) {
+        this.nightEnd = nightEnd;
+    }
+
+    public List<String> getAuthorizedDevices() {
+        return authorizedDevices;
+    }
+
+    public void setAuthorizedDevices(List<String> authorizedDevices) {
+        this.authorizedDevices = authorizedDevices;
+    }
+
+    public Boolean getKeylessEntryEnabled() {
+        return keylessEntryEnabled;
+    }
+
+    public void setKeylessEntryEnabled(Boolean keylessEntryEnabled) {
+        this.keylessEntryEnabled = keylessEntryEnabled;
+    }
+
+    public Boolean getPasscodeRequiredForLock() {
+        return passcodeRequiredForLock;
+    }
+
+    public void setPasscodeRequiredForLock(Boolean passcodeRequiredForLock) {
+        this.passcodeRequiredForLock = passcodeRequiredForLock;
+    }
 
     public String getTargetTemp() {
         return targetTemp;
@@ -89,13 +154,19 @@ public class TartanHomeSettings {
         this.password = password;
     }
 
-    public String getName() { return name; }
+    public String getName() {
+        return name;
+    }
 
     public void setName(String name) {
         this.name = name;
     }
 
-    public String getAlarmPasscode() { return alarmPasscode;  }
+    public String getAlarmPasscode() {
+        return alarmPasscode;
+    }
 
-    public void setAlarmPasscode(String alarmPasscode) { this.alarmPasscode = alarmPasscode;  }
+    public void setAlarmPasscode(String alarmPasscode) {
+        this.alarmPasscode = alarmPasscode;
+    }
 }

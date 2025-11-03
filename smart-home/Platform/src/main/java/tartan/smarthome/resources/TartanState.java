@@ -1,12 +1,10 @@
 package tartan.smarthome.resources;
 
-
 import tartan.smarthome.resources.iotcontroller.IoTValues;
 
 import javax.annotation.Nullable;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
+
+import java.time.LocalTime;
 import java.util.*;
 
 public class TartanState {
@@ -35,7 +33,7 @@ public class TartanState {
     @Nullable
     Boolean alarmActiveState = null; // the alarm active state (true if alarm sounding, false if alarm not sounding)
     @Nullable
-    Boolean awayTimerState = false;  // assume that the away timer did not trigger this evaluation
+    Boolean awayTimerState = false; // assume that the away timer did not trigger this evaluation
     @Nullable
     String alarmPassCode = null;
     @Nullable
@@ -43,15 +41,15 @@ public class TartanState {
     @Nullable
     String givenPassCode = "";
     @Nullable
-    Boolean doorLockedState = false; // the state of the door lock (true if locked, false if unlocked)
+    Boolean doorLockedState = null; // the state of the door lock (true if locked, false if unlocked)
     @Nullable
     Boolean passcodeRequiredForLock = null; // whether passcode is required for lock/unlock
     @Nullable
-    Boolean doorLockRequest = null; // explicit request: true=lock, false=unlock, null=no request
+    Boolean doorLockRequest = null; // explicit request: true=lock, false=unlock
     @Nullable
     Boolean keylessEntryEnabled = null;
     @Nullable
-    List<String> knownDevices = null;
+    List<String> authorizedDevices = null;
     @Nullable
     List<String> detectedDevices = null;
 
@@ -61,12 +59,16 @@ public class TartanState {
     @Nullable
     Boolean allClear = null;
 
+    // NightlockController
+    @Nullable
+    LocalTime nightStart = null;
+    LocalTime nightEnd = null;
+
     /**
      * Empty constructor
      */
     public TartanState() {
     }
-
 
     public void loadFromStateMap(Map<String, Object> stateMap) {
         for (String key : stateMap.keySet()) {
@@ -101,29 +103,26 @@ public class TartanState {
                 this.awayTimerState = (Boolean) stateMap.getOrDefault(key, false);
             } else if (key.equals(IoTValues.ALARM_ACTIVE)) {
                 this.alarmActiveState = (Boolean) stateMap.get(key);
-            } else if (key.equals("doorLockState")) {
-                this.doorLockedState = (Boolean)  stateMap.get("doorLockState");
-            }
-            else if (key.equals("passcodeRequiredForLock")) {
-                this.passcodeRequiredForLock = (Boolean) stateMap.get("passcodeRequiredForLock");
-            }
-            else if (key.equals("doorLockRequest")) {
-                this.doorLockRequest = (Boolean) stateMap.get("doorLockRequest");
-            }
-            else if (key.equals("keylessEntryEnabled")) {
-                this.keylessEntryEnabled = (Boolean)  stateMap.get("keylessEntryEnabled");
-            }
-            else if (key.equals("knownDevices")) {
-                this.knownDevices = (List) stateMap.get("knownDevices");
-            }
-            else if (key.equals("detectedDevices")) {
-                this.detectedDevices = (List) stateMap.get("detectedDevices");
-            }
-            else if (key.equals("intruderDetected")) {
-                this.intruderDetected = (Boolean) stateMap.get("intruderDetected");
-            }
-            else if (key.equals("allClear")) {
-                this.allClear = (Boolean) stateMap.get("allClear");
+            } else if (key.equals(IoTValues.DOOR_LOCKED_STATE)) {
+                this.doorLockedState = (Boolean) stateMap.get(IoTValues.DOOR_LOCKED_STATE);
+            } else if (key.equals(IoTValues.PASSCODE_REQUIRED_FOR_LOCK)) {
+                this.passcodeRequiredForLock = (Boolean) stateMap.get(IoTValues.PASSCODE_REQUIRED_FOR_LOCK);
+            } else if (key.equals(IoTValues.DOOR_LOCK_REQUEST)) {
+                this.doorLockRequest = (Boolean) stateMap.get(IoTValues.DOOR_LOCK_REQUEST);
+            } else if (key.equals(IoTValues.KEYLESS_ENTRY_ENABLED)) {
+                this.keylessEntryEnabled = (Boolean) stateMap.get(IoTValues.KEYLESS_ENTRY_ENABLED);
+            } else if (key.equals(IoTValues.AUTHORIZED_DEVICES)) {
+                this.authorizedDevices = (List) stateMap.get(IoTValues.AUTHORIZED_DEVICES);
+            } else if (key.equals(IoTValues.DETECTED_DEVICES)) {
+                this.detectedDevices = (List) stateMap.get(IoTValues.DETECTED_DEVICES);
+            } else if (key.equals(IoTValues.INTRUDER_STATE)) {
+                this.intruderDetected = (Boolean) stateMap.get(IoTValues.INTRUDER_STATE);
+            } else if (key.equals(IoTValues.ALL_CLEAR_STATE)) {
+                this.allClear = (Boolean) stateMap.get(IoTValues.ALL_CLEAR_STATE);
+            } else if (key.equals(IoTValues.NIGHT_LOCK_START)) {
+                this.nightStart = (LocalTime) stateMap.get(IoTValues.NIGHT_LOCK_START);
+            } else if (key.equals(IoTValues.NIGHT_LOCK_END)) {
+                this.nightEnd = (LocalTime) stateMap.get(IoTValues.NIGHT_LOCK_END);
             }
         }
     }
@@ -152,10 +151,10 @@ public class TartanState {
         if (targetTempSetting != null) {
             output.put(IoTValues.TARGET_TEMP, targetTempSetting);
         }
-        if(humidityReading != null){
+        if (humidityReading != null) {
             output.put(IoTValues.HUMIDITY_READING, humidityReading);
         }
-        if(alarmDelay != null){
+        if (alarmDelay != null) {
             output.put(IoTValues.ALARM_DELAY, alarmDelay);
         }
         if (doorState != null) {
@@ -195,29 +194,36 @@ public class TartanState {
             output.put(IoTValues.GIVEN_PASSCODE, givenPassCode);
         }
         if (doorLockedState != null) {
-            output.put("doorLockState", doorLockedState);
+            output.put(IoTValues.DOOR_LOCKED_STATE, doorLockedState);
         }
         if (passcodeRequiredForLock != null) {
-            output.put("passcodeRequiredForLock", passcodeRequiredForLock);
+            output.put(IoTValues.PASSCODE_REQUIRED_FOR_LOCK, passcodeRequiredForLock);
         }
         if (doorLockRequest != null) {
-            output.put("doorLockRequest", doorLockRequest);
+            output.put(IoTValues.DOOR_LOCK_REQUEST, doorLockRequest);
         }
         if (keylessEntryEnabled != null) {
-            output.put("keylessEntryEnabled", keylessEntryEnabled);
+            output.put(IoTValues.KEYLESS_ENTRY_ENABLED, keylessEntryEnabled);
         }
-        if (knownDevices != null) {
-            output.put("knownDevices", knownDevices);
+        if (authorizedDevices != null) {
+            output.put(IoTValues.AUTHORIZED_DEVICES, authorizedDevices);
         }
         if (detectedDevices != null) {
-            output.put("detectedDevices", detectedDevices);
+            output.put(IoTValues.DETECTED_DEVICES, detectedDevices);
         }
         if (intruderDetected != null) {
-            output.put("intruderDetected", intruderDetected);
+            output.put(IoTValues.INTRUDER_STATE, intruderDetected);
         }
         if (allClear != null) {
-            output.put("allClear", allClear);
+            output.put(IoTValues.ALL_CLEAR_STATE, allClear);
         }
+        if (nightStart != null) {
+            output.put(IoTValues.NIGHT_LOCK_START, nightStart);
+        }
+        if (nightEnd != null) {
+            output.put(IoTValues.NIGHT_LOCK_END, nightEnd);
+        }
+
         // TODO Door lock state inside IoTValues and others
 
         return output;
@@ -233,6 +239,24 @@ public class TartanState {
         Map<String, Object> intermediateSourceState = this.toStateMap();
         intermediateSourceState.putAll(intermediateOverwriteState);
         loadFromStateMap(intermediateSourceState);
+    }
+
+    @Nullable
+    public LocalTime getNightStart() {
+        return nightStart;
+    }
+
+    public void setNightStart(@Nullable LocalTime nightStart) {
+        this.nightStart = nightStart;
+    }
+
+    @Nullable
+    public LocalTime getNightEnd() {
+        return nightEnd;
+    }
+
+    public void setNightEnd(@Nullable LocalTime nightEnd) {
+        this.nightEnd = nightEnd;
     }
 
     @Nullable
@@ -380,9 +404,10 @@ public class TartanState {
     }
 
     @Nullable
-    public Boolean getIntruderDetected(){
+    public Boolean getIntruderDetected() {
         return intruderDetected;
     }
+
     public void setIntruderDetected(Boolean intruderDetected) {
         this.intruderDetected = intruderDetected;
     }
@@ -392,7 +417,7 @@ public class TartanState {
         return allClear;
     }
 
-    public void setAllClear(Boolean allClear){
+    public void setAllClear(Boolean allClear) {
         this.allClear = allClear;
     }
 
@@ -424,12 +449,12 @@ public class TartanState {
     }
 
     @Nullable
-    public List<String> getKnownDevices() {
-        return knownDevices;
+    public List<String> getAuthorizedDevices() {
+        return authorizedDevices;
     }
 
-    public void setKnownDevices(@Nullable List<String> knownDevices) {
-        this.knownDevices = knownDevices;
+    public void setAuthorizedDevices(@Nullable List<String> authorizedDevices) {
+        this.authorizedDevices = authorizedDevices;
     }
 
     @Nullable
@@ -451,7 +476,8 @@ public class TartanState {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || getClass() != o.getClass())
+            return false;
         TartanState that = (TartanState) o;
         return Objects.equals(getTempReading(), that.getTempReading()) &&
                 Objects.equals(getTargetTempSetting(), that.getTargetTempSetting()) &&
@@ -473,8 +499,14 @@ public class TartanState {
                 Objects.equals(getPasscodeRequiredForLock(), that.getPasscodeRequiredForLock()) &&
                 Objects.equals(getDoorLockRequest(), that.getDoorLockRequest()) &&
                 Objects.equals(getKeylessEntryEnabled(), that.getKeylessEntryEnabled()) &&
-                Objects.equals(getKnownDevices(), that.getKnownDevices()) &&
-                Objects.equals(getDetectedDevices(), that.getDetectedDevices()) && Objects.equals(getIntruderDetected(), that.getIntruderDetected()) && Objects.equals(getAllClear(), that.getAllClear());
+                Objects.equals(getAuthorizedDevices(), that.getAuthorizedDevices()) &&
+                Objects.equals(getDetectedDevices(), that.getDetectedDevices())
+                && Objects.equals(getIntruderDetected(), that.getIntruderDetected())
+                && Objects.equals(getAllClear(), that.getAllClear())
+                && Objects.equals(getIntruderDetected(), that.getIntruderDetected())
+                && Objects.equals(getAllClear(), that.getAllClear())
+                && Objects.equals(getNightStart(), that.getNightStart())
+                && Objects.equals(getNightEnd(), that.getNightEnd());
     }
 
     @Override
@@ -499,10 +531,12 @@ public class TartanState {
                 getPasscodeRequiredForLock(),
                 getDoorLockRequest(),
                 getKeylessEntryEnabled(),
-                getKnownDevices(),
+                getAuthorizedDevices(),
                 getDetectedDevices(),
                 getIntruderDetected(),
-                getAllClear());
+                getAllClear(),
+                getNightStart(),
+                getNightEnd());
     }
 
     @Override
@@ -528,10 +562,12 @@ public class TartanState {
                 ", passcodeRequiredForLock=" + passcodeRequiredForLock +
                 ", doorLockRequest=" + doorLockRequest +
                 ", keylessEntryEnabled=" + keylessEntryEnabled +
-                ", knownDevices=" + knownDevices +
+                ", authorizedDevices=" + authorizedDevices +
                 ", detectedDevices=" + detectedDevices +
                 ", intruderDetected=" + intruderDetected +
                 ", allClear=" + allClear +
+                ", nightStart=" + nightStart.toString() +
+                ", nightEnd=" + nightEnd.toString() +
                 '}';
     }
 }

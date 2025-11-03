@@ -22,7 +22,17 @@ public abstract class IoTValues {
     public static final String ALARM_ACTIVE = "AA";
     public static final String HEATER_STATE = "HES";
     public static final String CHILLER_STATE = "CHS";
-   
+    public static final String DOOR_LOCKED_STATE = "DLS";
+    public static final String PASSCODE_REQUIRED_FOR_LOCK = "PRFL";
+    public static final String DOOR_LOCK_REQUEST = "DLR";
+    public static final String KEYLESS_ENTRY_ENABLED = "KEE";
+    public static final String AUTHORIZED_DEVICES = "AD";
+    public static final String DETECTED_DEVICES = "DD";
+    public static final String INTRUDER_STATE = "IS";
+    public static final String ALL_CLEAR_STATE = "ACS";
+    public static final String NIGHT_LOCK_START = "NLS";
+    public static final String NIGHT_LOCK_END = "NLE";
+
     // protocol control values
     public static final String PARAM_DELIM = ";";
     public static final String MSG_DELIM = ":";
@@ -41,7 +51,7 @@ public abstract class IoTValues {
     public static final String HUMIDIFIER_ON = "1";
     public static final String HUMIDIFIER_OFF = "0";
 
-    public static final String ALARM_ENABLED  = "1";
+    public static final String ALARM_ENABLED = "1";
     public static final String ALARM_DISABLED = "0";
 
     public static final String ALARM_ON = "1";
@@ -52,6 +62,15 @@ public abstract class IoTValues {
 
     public static final String CHILLER_ON = "1";
     public static final String CHILLER_OFF = "0";
+
+    public static final String DOOR_LOCKED = "1";
+    public static final String DOOR_UNLOCKED = "0";
+
+    public static final String INTRUDER_DETECTED = "1";
+    public static final String NO_INTRUDER_DETECTED = "0";
+
+    public static final String ALL_CLEAR = "1";
+    public static final String NOT_ALL_CLEAR = "0";
 
     public static final String OK = "OK";
 
@@ -65,7 +84,7 @@ public abstract class IoTValues {
 
     public static final String SETTINGS_FILE = "settings.txt";
     public static final String USERS_DB = "users.txt";
-	public static final String AWAY_TIMER = "AW";
-    public static final String DOOR_LOCKED_STATE = "DOOR_LOCKED_STATE";
+    public static final String AWAY_TIMER = "AW";
+
     ;
 }

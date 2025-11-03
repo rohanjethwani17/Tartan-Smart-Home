@@ -9,13 +9,14 @@ import java.time.LocalTime;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Whitebox tests for <code>StaticTartanStateEvaluator.ValidateOpenedDoorRules</code>
+ * Whitebox tests for
+ * <code>StaticTartanStateEvaluator.ValidateOpenedDoorRules</code>
  * <p>
  * Strategy: Control flow based
  */
 class StaticTartanStateEvaluatorWhiteboxTestValidateOpenedDoorRulesTest extends StaticTartanStateEvaluatorTestBase {
     @Test
-    public void test_doorOpenLogged(){
+    public void test_doorOpenLogged() {
         log = new StringBuffer();
         state.setDoorState(true);
         state.setProximityState(true);
@@ -27,7 +28,7 @@ class StaticTartanStateEvaluatorWhiteboxTestValidateOpenedDoorRulesTest extends 
     }
 
     @Test
-    public void test_breakInDetected(){
+    public void test_breakInDetected() {
         state.setDoorState(true);
         state.setProximityState(false);
         state.setAlarmState(true);
@@ -38,7 +39,7 @@ class StaticTartanStateEvaluatorWhiteboxTestValidateOpenedDoorRulesTest extends 
     }
 
     @Test
-    public void test_DoorAutoCLose(){
+    public void test_DoorAutoCLose() {
         state.setDoorState(true);
         state.setProximityState(false);
         state.setAlarmState(false);
@@ -50,13 +51,14 @@ class StaticTartanStateEvaluatorWhiteboxTestValidateOpenedDoorRulesTest extends 
 }
 
 /**
- * Whitebox tests for <code>StaticTartanStateEvaluator.ValidateClosedDoorRules</code>
+ * Whitebox tests for
+ * <code>StaticTartanStateEvaluator.ValidateClosedDoorRules</code>
  * <p>
  * Strategy: Control flow based
  */
 class StaticTartanStateEvaluatorWhiteboxTestValidateClosedDoorRulesTest extends StaticTartanStateEvaluatorTestBase {
     @Test
-    public void test_closedDoorLogging(){
+    public void test_closedDoorLogging() {
         log = new StringBuffer();
         state.setDoorState(false);
         state.setProximityState(false);
@@ -68,7 +70,7 @@ class StaticTartanStateEvaluatorWhiteboxTestValidateClosedDoorRulesTest extends 
     }
 
     @Test
-    public void test_BreakInDetected(){
+    public void test_BreakInDetected() {
         state.setDoorState(false);
         state.setProximityState(true);
         state.setAlarmState(true);
@@ -80,13 +82,14 @@ class StaticTartanStateEvaluatorWhiteboxTestValidateClosedDoorRulesTest extends 
 }
 
 /**
- * Whitebox tests for <code>StaticTartanStateEvaluator.invokeAwayTimerIfApplicable</code>
+ * Whitebox tests for
+ * <code>StaticTartanStateEvaluator.invokeAwayTimerIfApplicable</code>
  * <p>
  * Strategy: Control flow based
  */
 class StaticTartanStateEvaluatorWhiteboxInvokeAwayTimerIfApplicableTest extends StaticTartanStateEvaluatorTestBase {
     @Test
-    public void test_doNothing(){
+    public void test_doNothing() {
         state.setAwayTimerState(false);
         state.setLightState(true);
         state.setDoorState(true);
@@ -102,7 +105,7 @@ class StaticTartanStateEvaluatorWhiteboxInvokeAwayTimerIfApplicableTest extends 
     }
 
     @Test
-    public void test_setAwayTimer(){
+    public void test_setAwayTimer() {
         state.setAwayTimerState(true);
         state.setLightState(true);
         state.setDoorState(true);
@@ -122,11 +125,12 @@ class NightlockControllerWhiteboxTest {
 
     private TartanState state;
     private NightlockController controller;
+    private StringBuffer log = new StringBuffer();
 
     @BeforeEach
     public void setup() {
         state = new TartanState();
-        controller = new NightlockController(state);
+        controller = new NightlockController(state, log);
     }
 
     /**
