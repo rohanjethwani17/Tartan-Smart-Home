@@ -80,7 +80,7 @@ test {
     testLogging {
         showStandardStreams = true
     }
-    finalizedBy jacocoTestReport
+    finalizedBy jacocoTestReport, 'pitest'
 }
 
 jacoco {
