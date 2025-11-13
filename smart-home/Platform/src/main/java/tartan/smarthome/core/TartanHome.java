@@ -3,8 +3,12 @@ package tartan.smarthome.core;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+import jakarta.persistence.Column;
+
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.Objects;
 
 /**
@@ -104,6 +108,28 @@ public class TartanHome {
 
     @JsonProperty
     private List<String> detectedDevices;
+
+    @JsonProperty
+    private String groupExperiment;
+
+    @JsonProperty
+    private Map<String, Long> weeklyLightsOnUsage = new TreeMap<>();
+
+    public Map<String, Long> getWeeklyLightsOnUsage() {
+        return weeklyLightsOnUsage;
+    }
+
+    public void setWeeklyLightsOnUsage(Map<String, Long> weeklyLightsOnUsage) {
+        this.weeklyLightsOnUsage = weeklyLightsOnUsage;
+    }
+
+    public String getGroupExperiment() {
+        return this.groupExperiment;
+    }
+
+    public void setGroupExperiment(String groupExperiment) {
+        this.groupExperiment = groupExperiment;
+    }
 
     /**
      * Empty constructor needed by Jackson deserialization

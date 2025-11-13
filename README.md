@@ -83,7 +83,6 @@ A complete log demonstrating the rollback workflow can be found [here](docs/G3/e
 
 System description can be downloaded as a pdf file
 [here](./docs/TartanSystemDescription.pdf).
-https://docs.google.com/document/d/1380wP2QhaNS1oF23kECDXw18lnC4WUw825GCiCAEXec/edit?tab=t.0
 
 ## Folder structure
 

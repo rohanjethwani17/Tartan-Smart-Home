@@ -9,13 +9,12 @@ import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class TartanResourcesE2ETest
-{
+public class TartanResourcesE2ETest {
     private static final String BASE_URL = "http://localhost:8080";
     private static final String HOUSE = "mse";
     private static final String USER = "admin";
     private static final String PASS = "1234";
-    private static final String STATE_PATH  = "/smarthome/state/"  + HOUSE;
+    private static final String STATE_PATH = "/smarthome/state/" + HOUSE;
     private static final String UPDATE_PATH = "/smarthome/update/" + HOUSE;
     static HttpClient HTTP;
 
@@ -45,10 +44,11 @@ public class TartanResourcesE2ETest
     /**
      * Tests the user to be able to login in with the correct credentials
      * GET /state without auth -> 401
+     * 
      * @throws Exception
      */
     @Test
-    public void testAuth401() throws Exception{
+    public void testAuth401() throws Exception {
         var req = HttpRequest.newBuilder(URI.create(BASE_URL + STATE_PATH))
                 .header("Accept", "text/html")
                 .GET().build();
@@ -60,10 +60,11 @@ public class TartanResourcesE2ETest
     /**
      * Tests that the user is logged in
      * GET /state with auth -> 200
+     * 
      * @throws Exception
      */
     @Test
-    public void testAuth200() throws Exception{
+    public void testAuth200() throws Exception {
         var req = HttpRequest.newBuilder(URI.create(BASE_URL + STATE_PATH))
                 .header("Accept", "text/html")
                 .header("Authorization", basicAuthHeader(USER, PASS))
@@ -78,10 +79,11 @@ public class TartanResourcesE2ETest
     /**
      * Tests that the user is logged in, in order to make any POST requests
      * POST /update without authentication -> 401, set temperature to 60
+     * 
      * @throws Exception
      */
     @Test
-    public void testUpdateTartanStatusAuth401() throws Exception{
+    public void testUpdateTartanStatusAuth401() throws Exception {
         var req = HttpRequest.newBuilder(URI.create(BASE_URL + UPDATE_PATH))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString("{\"targetTemp\":\"60\"}", StandardCharsets.UTF_8))
@@ -94,10 +96,11 @@ public class TartanResourcesE2ETest
     /**
      * Tests the user is logged in and able to update the status of the home
      * POST /update with authentication -> 200, set temperature to 60
+     * 
      * @throws Exception
      */
     @Test
-    public void testUpdateTartanStatusAuth200() throws Exception{
+    public void testUpdateTartanStatusAuth200() throws Exception {
         var req = HttpRequest.newBuilder(URI.create(BASE_URL + UPDATE_PATH))
                 .header("Content-Type", "application/json")
                 .header("Authorization", basicAuthHeader(USER, PASS))
@@ -118,6 +121,5 @@ public class TartanResourcesE2ETest
         assertTrue(getRes.body().contains("60"),
                 "State page should reflect updated target temperature");
     }
-
 
 }

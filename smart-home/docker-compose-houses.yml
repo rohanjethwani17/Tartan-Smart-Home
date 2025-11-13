@@ -1,4 +1,12 @@
 services:
+  house-rnv:
+    build: HouseSimulator/
+    ports:
+      - "5053:5050"
+  house-tka:
+    build: HouseSimulator/
+    ports:
+      - "5052:5050"
   house-cmu:
     build: HouseSimulator/
     ports:
