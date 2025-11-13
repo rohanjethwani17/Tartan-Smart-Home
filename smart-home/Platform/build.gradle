@@ -157,3 +157,8 @@ spotbugsMain {
         }
     }
 }
+
+pmd {
+    // https://docs.gradle.org/current/userguide/pmd_plugin.html
+    toolVersion = "7.16.0"
+}
