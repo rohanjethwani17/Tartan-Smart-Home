@@ -16,7 +16,7 @@ plugins {
     id 'info.solidsoft.pitest' version '1.15.0'
     id("com.github.spotbugs") version "6.1.7"
     id 'pmd'
-    id("net.ltgt.errorprone") version '4.3.0'
+//    id("net.ltgt.errorprone") version '4.3.0'
 }
 group 'Tartan'
 version '1.0-SNAPSHOT'
@@ -46,7 +46,7 @@ dependencies {
     implementation 'mysql:mysql-connector-java:8.0.33'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
-    errorprone("com.google.errorprone:error_prone_core:2.42.0")
+//    errorprone("com.google.errorprone:error_prone_core:2.42.0")
 }
 run {
     args = ['server', 'config.yml']
