@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * A connection to an IoT-enabled house. This class handles the network connection to the house
@@ -115,7 +116,7 @@ public class IoTConnection {
             houseSocket = new Socket(this.address, this.port);
 
             out = new BufferedWriter(new OutputStreamWriter(houseSocket.getOutputStream()));
-            in = new BufferedReader(new InputStreamReader(houseSocket.getInputStream()));
+            in = new BufferedReader(new InputStreamReader(houseSocket.getInputStream(), StandardCharsets.UTF_8));
 
         } catch (UnknownHostException uhe) {
             LOGGER.error("Unknown host: {}", address);
