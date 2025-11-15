@@ -502,7 +502,7 @@ public class TartanHomeService {
                     this.lightsOnDuration += diff;
                 }
             } else {
-                if (prevLightState != lightState) {
+                if (!this.prevLightState.equals(lightState)) {
                     LocalTime now = LocalTime.now();
                     Long diff = this.timeLightMinutesUpdated.until(now, ChronoUnit.MILLIS);
                     this.timeLightMinutesUpdated = now;
