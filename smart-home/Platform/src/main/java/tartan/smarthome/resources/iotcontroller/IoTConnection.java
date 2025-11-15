@@ -9,7 +9,8 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 
 /**
- * A connection to an IoT-enabled house. This class handles the network connection to the house
+ * A connection to an IoT-enabled house. This class handles the network
+ * connection to the house
  * <p>
  * Project: LG Exec Ed Program
  * Copyright: 2015 Jeffrey S. Gennari
@@ -115,7 +116,7 @@ public class IoTConnection {
         try {
             houseSocket = new Socket(this.address, this.port);
 
-            out = new BufferedWriter(new OutputStreamWriter(houseSocket.getOutputStream()));
+            out = new BufferedWriter(new OutputStreamWriter(houseSocket.getOutputStream(), StandardCharsets.UTF_8));
             in = new BufferedReader(new InputStreamReader(houseSocket.getInputStream(), StandardCharsets.UTF_8));
 
         } catch (UnknownHostException uhe) {
