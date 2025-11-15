@@ -1,6 +1,8 @@
 package tartan.smarthome.resources.iotcontroller;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -78,7 +80,7 @@ public class IoTControlManager {
         try {
             File file = new File(settingsPath + File.separator + IoTValues.USERS_DB);
 
-            BufferedReader br = new BufferedReader(new FileReader(file));
+            BufferedReader br = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8);
 
             String line;
             while ((line = br.readLine()) != null) {
@@ -113,7 +115,7 @@ public class IoTControlManager {
         TartanState initialSettings = new TartanState();
         initialSettings.setAlarmDelay(alarmDelay);
         initialSettings.setAlarmPassCode(alarmPassCode);
-        
+
         // The away timer is not set to start
         lastState.setAwayTimerState(false);
 
@@ -147,6 +149,7 @@ public class IoTControlManager {
 
     /**
      * User-initiated state update
+     * 
      * @param stateUpdate
      */
     public void processStateUpdate(TartanState stateUpdate) {
@@ -159,7 +162,7 @@ public class IoTControlManager {
         completeState.mergeState(stateUpdate);
         TartanState newState = stateEvaluator.evaluateState(completeState, log);
         logMessages.add(log.toString());
-        synchronized(connMgr) {
+        synchronized (connMgr) {
             connMgr.setState(newState);
         }
         this.lastState.mergeState(newState);
@@ -171,6 +174,7 @@ public class IoTControlManager {
 
     /**
      * Fetch the complete state from the house
+     * 
      * @return TartanState of the house's complete state
      */
     private TartanState fetchState() {
@@ -209,16 +213,16 @@ public class IoTControlManager {
                         StringBuffer log = new StringBuffer();
                         TartanState newState = stateEvaluator.evaluateState(currentState, log);
                         logMessages.add(log.toString());
-                        
-                        // save this state 
+
+                        // save this state
                         lastState.mergeState(newState);
 
                         synchronized (connMgr) {
                             connMgr.setState(newState);
                         }
-                        
+
                         // Must handle away timer here
-                        if (newState.getAwayTimerState() != null && newState.getAwayTimerState()){
+                        if (newState.getAwayTimerState() != null && newState.getAwayTimerState()) {
                             startAwayTimer();
                         } else {
                             missedUpdates = 0;
