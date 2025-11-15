@@ -612,11 +612,8 @@ public class TartanHomeService {
         if (tartanHome.getAlarmDelay() != null) {
             this.alarmDelay = tartanHome.getAlarmDelay();
 
-            Hashtable<String, Object> ht = new Hashtable<String, Object>() {
-                {
-                    put(IoTValues.ALARM_DELAY, Integer.parseInt(TartanHomeService.this.alarmDelay));
-                }
-            };
+            Hashtable<String, Object> ht = new Hashtable<String, Object>();
+            ht.put(IoTValues.ALARM_DELAY, Integer.parseInt(TartanHomeService.this.alarmDelay));
             controller.updateSettings(TartanState.fromStateMap(ht));
         }
 
