@@ -493,7 +493,7 @@ public class TartanHomeService {
             String newLightState = lightState ? TartanHomeValues.ON : TartanHomeValues.OFF;
             tartanHome.setLight(newLightState);
             if (lightState) {
-                if (this.prevLightState != lightState) {
+                if (!this.prevLightState.equals(lightState)) {
                     this.timeLightMinutesUpdated = LocalTime.now();
                 } else {
                     LocalTime now = LocalTime.now();
