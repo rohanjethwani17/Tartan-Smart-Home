@@ -493,7 +493,7 @@ public class TartanHomeService {
             String newLightState = lightState ? TartanHomeValues.ON : TartanHomeValues.OFF;
             tartanHome.setLight(newLightState);
             if (lightState) {
-                if (this.prevLightState != lightState) {
+                if (!this.prevLightState.equals(lightState)) {
                     this.timeLightMinutesUpdated = LocalTime.now();
                 } else {
                     LocalTime now = LocalTime.now();
@@ -502,7 +502,7 @@ public class TartanHomeService {
                     this.lightsOnDuration += diff;
                 }
             } else {
-                if (prevLightState != lightState) {
+                if (!this.prevLightState.equals(lightState)) {
                     LocalTime now = LocalTime.now();
                     Long diff = this.timeLightMinutesUpdated.until(now, ChronoUnit.MILLIS);
                     this.timeLightMinutesUpdated = now;
@@ -612,11 +612,8 @@ public class TartanHomeService {
         if (tartanHome.getAlarmDelay() != null) {
             this.alarmDelay = tartanHome.getAlarmDelay();
 
-            Hashtable<String, Object> ht = new Hashtable<String, Object>() {
-                {
-                    put(IoTValues.ALARM_DELAY, Integer.parseInt(TartanHomeService.this.alarmDelay));
-                }
-            };
+            Hashtable<String, Object> ht = new Hashtable<String, Object>();
+            ht.put(IoTValues.ALARM_DELAY, Integer.parseInt(TartanHomeService.this.alarmDelay));
             controller.updateSettings(TartanState.fromStateMap(ht));
         }
 

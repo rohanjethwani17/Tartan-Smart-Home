@@ -337,7 +337,7 @@ public class StaticTartanStateEvaluator implements TartanStateEvaluator {
     private void processDoorLockRequest(TartanState intermediateState, StringBuffer log) {
 
         Boolean requestLock = intermediateState.getDoorLockRequest();
-        if (requestLock != null && requestLock != intermediateState.getDoorLockedState()) {
+        if (requestLock != null && !requestLock.equals(intermediateState.getDoorLockedState())) {
             if (Boolean.TRUE.equals(intermediateState.intruderDetected)) {
                 log.append(formatLogEntry("electronic operation ignored due to intruder"));
                 return;
