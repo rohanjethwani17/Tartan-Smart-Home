@@ -9,8 +9,9 @@ on:
 jobs:
   deploy:
     name: Deploy to Cybera
-    runs-on: self-hosted
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-latest
+    # Disabled: self-hosted runner no longer available
+    if: false
 
     steps:
       - uses: actions/checkout@v4

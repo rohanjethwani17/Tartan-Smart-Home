@@ -5,7 +5,9 @@ on:
 
 jobs:
   revert-backend:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
+    # Disabled: self-hosted runner no longer available
+    if: false
     steps:
       - name: Revert backend to previous version
         uses: appleboy/ssh-action@master
